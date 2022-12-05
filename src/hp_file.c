@@ -23,7 +23,14 @@ int HP_CreateFile(char *fileName){
     BF_PrintError(err);
     return -1;
   }
+  // we could not open the file 
+  if(HP_OpenFile(fileName)==NULL)
+    return -1;
+  return 0;
+}
 
+HP_info* HP_OpenFile(char *fileName){
+  BF_ErrorCode err;
   int file_desc;
   // open the file that you created to put HP_info
   if (err=BF_OpenFile(fileName,&file_desc)!=BF_OK){
@@ -32,11 +39,7 @@ int HP_CreateFile(char *fileName){
     return -1;
   }
 
-  return 0;
-}
-
-HP_info* HP_OpenFile(char *fileName){
-    return NULL ;
+  return NULL ;
 }
 
 
