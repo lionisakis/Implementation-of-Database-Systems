@@ -36,8 +36,18 @@ HP_info* HP_OpenFile(char *fileName){
   if (err=BF_OpenFile(fileName,&file_desc)!=BF_OK){
     // if it is not created print the error
     BF_PrintError(err);
-    return -1;
+    return NULL;
   }
+  HP_info info;
+  info.fileDesc = file_desc;
+  info.lastBlock = NULL;
+  info.maxRecordPerBlock = sizeof(Record)/BF_BLOCK_SIZE;
+  BF_Block* block;
+  CALL(BF_AllocateBlock(file_desc,block));
+  
+
+
+
 
   return NULL ;
 }
