@@ -121,13 +121,14 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
 
   int numberOfVisitedBlocks=0;
   int file_desc = hp_info->fileDesc;
-  
+ 
   // find number of blocks in this file
   int blocks_num;
   CALL_BF(BF_GetBlockCounter(file_desc, &blocks_num),-1);
   
   //find first block
   BF_Block* block;
+  BF_Block_Init(&block);
   CALL_BF(BF_GetBlock(file_desc, 0, block), -1);
 
   //find hp_block_info of first block
@@ -139,7 +140,6 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
   while(blocks_num>0) {
     numberOfVisitedBlocks++;
     
-    BF_Block_Init(&block);
     data = BF_Block_GetData(block); 
     Record* rec = data;
     // checking the block's records
@@ -156,8 +156,8 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
     blocks_num--;
 
   }
-
-   return numberOfVisitedBlocks;
+  BF_Block_Destroy(&block);
+  return numberOfVisitedBlocks;
 }
 
   // BF_Block* last_block = hp_info->lastBlock;
