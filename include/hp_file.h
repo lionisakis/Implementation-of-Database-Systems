@@ -12,7 +12,7 @@ typedef struct {
 } HP_info;
 
 typedef struct {
-    int sizeOfRecords;
+    int numOfRecords;
     BF_Block* nextBlock;
 } HP_block_info;
 

@@ -31,7 +31,7 @@ HP_info* HP_OpenFile(char *fileName){
   // create block info
   HP_block_info blockInfo;
   blockInfo.nextBlock=NULL;
-  blockInfo.sizeOfRecords=0;
+  blockInfo.numOfRecords=0;
 
   // create the info to store
   HP_info* info= malloc(sizeof(*info));
@@ -133,7 +133,7 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
   //find hp_block_info of first block
   HP_block_info blockInfo = HP_GetInfo(hp_info, &block, 1);
 
-  int block_records = blockInfo.sizeOfRecords;
+  int block_records = blockInfo.numOfRecords;
   void* data;
 
   while(blocks_num>0) {
@@ -151,7 +151,7 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
     block = blockInfo.nextBlock;
     //find next block's hp_block_info
     blockInfo = HP_GetInfo(hp_info, &block, 0);
-    block_records = blockInfo.sizeOfRecords;
+    block_records = blockInfo.numOfRecords;
 
     blocks_num--;
 
