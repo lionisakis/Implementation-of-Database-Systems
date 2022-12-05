@@ -86,6 +86,48 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
 }
 
 int HP_GetAllEntries(HP_info* hp_info, int value){
-   return 0;
+
+  int numberOfVisitedBlocks=0;
+  int file_desc = hp_info->fileDesc;
+  
+  // find number of blocks in this file
+  int blocks_num;
+  CALL_OR_DIE(BF_GetBlockCounter(file_desc, &blocks_num));
+  
+  //find first block
+  BF_Block* block;
+  CALL_BF(BF_GetBlock(file_desc, 0, block), -1);
+
+  //find hp_block_info of first block
+  HP_block_info blockInfo = HP_get_info(hp_info, &block, 1);
+
+  int block_records = blockInfo.sizeOfRecords;
+  void* data;
+
+  while(blocks_num>0) {
+    numberOfVisitedBlocks++;
+    
+    BF_Block_Init(&block);
+    data = BF_Block_GetData(block); 
+    Record* rec = data;
+    // checking the block's records
+    for(int i=0; i<block_records; i++) {
+      if(rec[i].id == value)
+        printRecord(rec[i]);
+    }
+    //find next block to check
+    block = blockInfo.nextBlock;
+    //find next block's hp_block_info
+    blockInfo = HP_get_info(hp_info, &block, 0);
+    block_records = blockInfo.sizeOfRecords;
+
+    blocks_num--;
+
+  }
+
+   return numberOfVisitedBlocks;
 }
 
+  // BF_Block* last_block = hp_info->lastBlock;
+  // int max_record_first_block = hp_info->maxRecordFirstBlock;
+  // int max_record_per_block = hp_info->maxRecordPerBlock;
