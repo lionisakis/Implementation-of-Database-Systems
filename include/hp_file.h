@@ -6,8 +6,15 @@
 
 /* Η δομή HP_info κρατάει μεταδεδομένα που σχετίζονται με το αρχείο σωρού*/
 typedef struct {
-    // Να το συμπληρώσετε
+    int fileDesc;
+    int maxRecordPerBlock;
+    BF_Block* lastBlock;
 } HP_info;
+
+typedef struct {
+    int sizeOfRecords;
+    BF_Block* nextBlock;
+} HP_block_info;
 
 /*Η συνάρτηση HP_CreateFile χρησιμοποιείται για τη δημιουργία και
 κατάλληλη αρχικοποίηση ενός άδειου αρχείου σωρού με όνομα fileName.

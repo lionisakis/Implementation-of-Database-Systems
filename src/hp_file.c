@@ -16,7 +16,23 @@
 }
 
 int HP_CreateFile(char *fileName){
-    return 0;
+  BF_ErrorCode err;
+  // you create a file with file name
+  if (err=BF_CreateFile(fileName)!=BF_OK){
+    // if it is not created print the error
+    BF_PrintError(err);
+    return -1;
+  }
+
+  int file_desc;
+  // open the file that you created to put HP_info
+  if (err=BF_OpenFile(fileName,&file_desc)!=BF_OK){
+    // if it is not created print the error
+    BF_PrintError(err);
+    return -1;
+  }
+
+  return 0;
 }
 
 HP_info* HP_OpenFile(char *fileName){
