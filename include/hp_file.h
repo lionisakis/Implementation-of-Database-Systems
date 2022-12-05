@@ -9,7 +9,6 @@ typedef struct {
     int fileDesc;
     int maxRecordFirstBlock;
     int maxRecordPerBlock;
-    BF_Block* lastBlock;
 } HP_info;
 
 typedef struct {
