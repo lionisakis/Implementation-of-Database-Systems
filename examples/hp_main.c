@@ -24,15 +24,13 @@ int main() {
   HP_info* info = HP_OpenFile(FILE_NAME);
 
   
-  if(result!=-1){
-    Record record;
-    srand(12569874);
-    int r;
-    printf("Insert Entries\n");
-    for (int id = 0; id < info->maxRecordFirstBlock; ++id) {
-      record = randomRecord();
-      HP_InsertEntry(info, record);
-    }
+  Record record;
+  srand(12569874);
+  int r;
+  printf("Insert Entries\n");
+  for (int id = 0; id < RECORDS_NUM; ++id) {
+    record = randomRecord();
+    HP_InsertEntry(info, record);
   }
 
   printf("RUN PrintAllEntries\n");
