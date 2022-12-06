@@ -15,6 +15,9 @@
   }                         \
 }
 
+#define POS_HP_block_info BF_BLOCK_SIZE-sizeof(HP_block_info)-1
+#define POS_HP_info BF_BLOCK_SIZE-sizeof(HP_block_info)-sizeof(HP_info)-2
+
 int HP_CreateFile(char *fileName){
   BF_ErrorCode err;
   // you create a file with file name
@@ -40,21 +43,18 @@ HP_info* HP_OpenFile(char *fileName){
     // take the info data from the block
     HP_info* info=malloc(sizeof(*info));
 
-    int maxRecordFirstBlock = (BF_BLOCK_SIZE-sizeof(*info)-sizeof(HP_block_info))/sizeof(Record);
-    int posInfo=maxRecordFirstBlock*sizeof(Record);
-    memcpy(info,data+posInfo,sizeof(*info));
-
+    memcpy(info,data+POS_HP_info,sizeof(HP_info));
+    printf("POS_HP_info %ld\n",POS_HP_info);
+    printf("info %d %d %d\n",info->fileDesc,info->maxRecordFirstBlock,info->maxRecordPerBlock);
     // unpin the block and destroy it
     CALL_BF(BF_UnpinBlock(block),NULL);
     BF_Block_Destroy(&block);
-    printf("info:%d %d %d\n",info->fileDesc,info->maxRecordFirstBlock,info->maxRecordPerBlock);
-    printf("pos info: %d\n",posInfo);
     return info;
   }
 
   // create block info
   HP_block_info blockInfo;
-  blockInfo.nextBlock=NULL;
+  blockInfo.nextBlockNumber=-1;
   blockInfo.numOfRecords=0;
 
   // create the info to store
@@ -75,13 +75,15 @@ HP_info* HP_OpenFile(char *fileName){
   void* data=BF_Block_GetData(block);
 
   // positions to put
-  int posInfo=sizeof(Record)*info->maxRecordFirstBlock;
-  int posBlockInfo=sizeof(Record)*info->maxRecordFirstBlock+sizeof(*info)*1;
-  printf("posBlockInfo %d\n",posBlockInfo);
+
   // copy HP_block_info and HP_info to the first block
-  memcpy(data+posBlockInfo,&blockInfo,sizeof(blockInfo));
-  memcpy(data+posInfo,info,sizeof(*info)); 
-  printf("pos info: %d sizeof(info):%ld\n",posInfo,sizeof(*info));
+  memcpy(data+POS_HP_block_info,&blockInfo,sizeof(blockInfo));
+  memcpy(data+POS_HP_info,info,sizeof(HP_info)); 
+
+  printf("posBlockInfo:%ld \n",POS_HP_block_info);
+  printf("posInfo:%ld sizeof:%ld end:%ld \n",POS_HP_info,sizeof(HP_info),POS_HP_info+sizeof(HP_info));
+  printf("POS_HP_info %ld\n",POS_HP_info);
+  printf("info %d %d %d\n",info->fileDesc,info->maxRecordFirstBlock,info->maxRecordPerBlock);
 
   // we changed the data of the block so set it dirty
   BF_Block_SetDirty(block);
@@ -96,15 +98,10 @@ HP_info* HP_OpenFile(char *fileName){
 }
 
 // returns the HP_block_info from the block. On error returns NULL
-HP_block_info HP_Get_HP_Block_Info(HP_info* hp_info,void* data,int flagFirst){
+HP_block_info HP_Get_HP_Block_Info(void* data){
   HP_block_info blockInfo;
-  int posBlockInfo;
-  if(flagFirst==1)
-    posBlockInfo=sizeof(Record)*hp_info->maxRecordFirstBlock+sizeof(*hp_info);
-  else
-    posBlockInfo=sizeof(Record)*hp_info->maxRecordPerBlock;
-  
-  memcpy(&blockInfo,data+posBlockInfo,sizeof(blockInfo));
+  // the HP_block_info is always at the last bytes
+  memcpy(&blockInfo,data+POS_HP_block_info,sizeof(blockInfo));
   return blockInfo;
 }
 
@@ -130,17 +127,16 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
     // find the first block and get the HP_block_info
     BF_GetBlock(hp_info->fileDesc,0,block);
     void* data=BF_Block_GetData(block);
-    HP_block_info blockInfo= HP_Get_HP_Block_Info(hp_info,data,1);
+    HP_block_info blockInfo= HP_Get_HP_Block_Info(data);
 
     // if there is room in this block, add it here
     if(blockInfo.numOfRecords<hp_info->maxRecordFirstBlock){
       // copy the Record to the block 
-
       memcpy(data+blockInfo.numOfRecords*sizeof(Record),&record,sizeof(Record));
       
       // and change the HP_block_info for the numOfRecords
       blockInfo.numOfRecords++;
-      memcpy(data+hp_info->maxRecordFirstBlock*sizeof(Record)+sizeof(HP_info),&blockInfo,sizeof(HP_block_info));
+      memcpy(data+POS_HP_block_info,&blockInfo,sizeof(HP_block_info));
 
       // the data changed
       BF_Block_SetDirty(block);
@@ -148,9 +144,38 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
       BF_Block_Destroy(&block);
       return 0;
     }
-    // else{
+    else{
+      printf("HERE\n");
+      // set that there will be a next block
+      blockInfo.nextBlockNumber=size;
+      memcpy(data+POS_HP_block_info,&blockInfo,sizeof(HP_block_info));
+      printf("POS_HP_block_info %ld\n",POS_HP_block_info);
+      // the data changed
+      BF_Block_SetDirty(block);
+      BF_UnpinBlock(block);
+      BF_Block_Destroy(&block);
 
-    // }
+      BF_Block* newBLock;
+      BF_Block_Init(&newBLock);
+      CALL_BF(BF_AllocateBlock(hp_info->fileDesc,newBLock),-1);
+      void* newData=BF_Block_GetData(newBLock);
+    
+      // copy the Record to the new block 
+      memcpy(newData,&record,sizeof(Record));
+
+      HP_block_info newBlockInfo;
+      newBlockInfo.nextBlockNumber=-1;
+      newBlockInfo.numOfRecords=1;
+
+      // and change the HP_block_info for the numOfRecords 
+      memcpy(newData+POS_HP_block_info,&newBlockInfo,sizeof(HP_block_info));
+
+      // the data changed
+      BF_Block_SetDirty(newBLock);
+      BF_UnpinBlock(newBLock);
+      BF_Block_Destroy(&newBLock);
+      return 0;
+    }
   }
   else{
     // if(){
@@ -180,28 +205,31 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
 
   //find hp_block_info of first block
   void* data = BF_Block_GetData(block); 
-  HP_block_info blockInfo = HP_Get_HP_Block_Info(hp_info, data, 1);
+  HP_block_info blockInfo = HP_Get_HP_Block_Info(data);
 
   int block_records = blockInfo.numOfRecords;
 
   while(blocks_num>0) {
     numberOfVisitedBlocks++;
-    printf("block_records %d\n",block_records);
     Record* rec = (Record*)data;
+    printf("block_records %d\n",block_records);
     // checking the block's records
     for(int i=0; i<block_records; i++) {
       // if(rec[i].id == value)
       printRecord(rec[i]);
     }
-
     //find next block to check
-    if (blockInfo.nextBlock!=NULL){
-      block = blockInfo.nextBlock;
+    if (blockInfo.nextBlockNumber!=-1){
+      // find the next block
+      int next = blockInfo.nextBlockNumber;
+      printf("Next %d\n",next);
+      CALL_BF(BF_GetBlock(hp_info->fileDesc,next,block),-1);
+      data = BF_Block_GetData(block); 
+      
       //find next block's hp_block_info
-      blockInfo = HP_Get_HP_Block_Info(hp_info, data, 0);
+      blockInfo = HP_Get_HP_Block_Info(data);
 
       block_records = blockInfo.numOfRecords;
-      data = BF_Block_GetData(block); 
     }
       
     blocks_num--;
