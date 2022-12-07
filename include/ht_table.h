@@ -8,7 +8,7 @@
 typedef struct {
     int fileDesc;
     long int numBuckets;
-    int* hashTable;
+    unsigned long int posHashTable;
     int maxRecordFirstBlock;
     int maxRecordPerBlock;
 } HT_info;
