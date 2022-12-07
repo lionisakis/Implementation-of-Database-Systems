@@ -240,7 +240,3 @@ int HP_GetAllEntries(HP_info* hp_info, int value){
   BF_Block_Destroy(&block);
   return numberOfVisitedBlocks;
 }
-
-  // BF_Block* last_block = hp_info->lastBlock;
-  // int max_record_first_block = hp_info->maxRecordFirstBlock;
-  // int max_record_per_block = hp_info->maxRecordPerBlock;

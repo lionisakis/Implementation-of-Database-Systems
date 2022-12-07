@@ -19,8 +19,8 @@
 #define POS_HT_info BF_BLOCK_SIZE-sizeof(HT_block_info)-sizeof(HT_info)-1
 #define END_BF_BLOCKS -1;
 
-int hashValue(int id,int buckets){
-  return id%buckets;
+int hashValue(int buckets, int value){
+  return value % buckets;
 }
 
 int HT_CreateFile(char *fileName,  int buckets){
@@ -93,18 +93,96 @@ HT_info* HT_OpenFile(char *fileName){
 }
 
 
-int HT_CloseFile( HT_info* HT_info ){
-    return 0;
+int HT_CloseFile( HT_info* ht_info ){
+  // close file
+  CALL_HT(BF_CloseFile(ht_info->fileDesc), -1);
+
+  free(ht_info);
+
+  return 0;
 }
 
 int HT_InsertEntry(HT_info* ht_info, Record record){
-    return 0;
+  return 0;
 }
 
 int HT_GetAllEntries(HT_info* ht_info, void *value ){
-    return 0;
+
+  int numberOfVisitedBlocks=0;
+  int file_desc = ht_info->fileDesc;
+  int buckets = ht_info->numBuckets;
+
+  //in which bucket should I search?
+  int myBucket= hashValue(ht_info->numBuckets, value);
+
+  //find first block to get hash table
+  BF_Block* block;
+  BF_Block_Init(&block);
+  CALL_HT(BF_GetBlock(file_desc, 0, block), -1);
+
+  //find ht_block_info of first block
+  void* data = BF_Block_GetData(block); 
+  HT_block_info blockInfo;
+  HT_Get_HT_Block_Info(data,&blockInfo);
+
+  //getting the hash table
+  int hashtable[buckets];
+  memcpy(hashtable,data+ht_info->posHashTable,sizeof(int)*buckets);
+
+  //find my id block
+  BF_Block* myBlock;
+  BF_Block_Init(&myBlock);
+  CALL_HT(BF_GetBlock(file_desc, hashtable[myBucket], block), -1);
+
+  //find data & ht_block_info of my id block
+  void* myData = BF_Block_GetData(myBlock); 
+  HT_block_info myBlockInfo;
+  HT_Get_HT_Block_Info(myData,&myBlockInfo);
+
+
+  int blockRecords = myBlockInfo.numOfRecords;
+  //flag: has this bucket any other block? yes:0, no:-1
+  int flag=0;
+
+  while(flag!=-1) {
+    numberOfVisitedBlocks++;
+    Record* rec = (Record*)data;
+    // checking the block's records
+    for(int i=0; i<blockRecords; i++) {
+      if(rec[i].id == value)
+        printRecord(rec[i]);
+    }
+    //find next block to check
+    if (myBlockInfo.nextBlockNumber!=-1){
+      CALL_BF(BF_UnpinBlock(myBlock),-1);
+      int next = myBlockInfo.nextBlockNumber;
+      CALL_BF(BF_GetBlock(ht_info->fileDesc,next,myBlock),-1);
+      myData = BF_Block_GetData(myBlock); 
+      
+      //find next block's hp_block_info
+      HT_Get_HT_Block_Info(myData,&myBlockInfo);
+
+      blockRecords = myBlockInfo.numOfRecords;
+    }
+    else 
+      flag=-1;
+  }
+
+  // set it so anyone can take it
+  CALL_BF(BF_UnpinBlock(block),-1);
+  CALL_BF(BF_UnpinBlock(myBlock),-1);
+
+  BF_Block_Destroy(&block);
+  BF_Block_Destroy(&myBlock);
+  return numberOfVisitedBlocks;
 }
 
+// returns the HT_block_info from the block. 
+//On error returns NULL
+void HP_Get_HP_Block_Info(void* data,HT_block_info* blockInfo){
+  // the HT_block_info is always at the last bytes
+  memcpy(blockInfo,data+POS_HT_block_info,sizeof(HT_block_info));
+}
 
 
 
