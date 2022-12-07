@@ -6,20 +6,19 @@
 #include "hp_file.h"
 #include "record.h"
 
-#define CALL_BF(call,returnCode)       \
-{                           \
-  BF_ErrorCode code = call; \
-  if (code != BF_OK) {         \
-    BF_PrintError(code);    \
-    return returnCode;        \
-  }                         \
+#define CALL_BF(call,returnCode)    \
+{                                   \
+  BF_ErrorCode code = call;         \
+  if (code != BF_OK) {              \
+    BF_PrintError(code);            \
+    return returnCode;              \
+  }                                 \
 }
 
 #define POS_HP_block_info BF_BLOCK_SIZE-sizeof(HP_block_info)-1
 #define POS_HP_info BF_BLOCK_SIZE-sizeof(HP_block_info)-sizeof(HP_info)-1
 
 int HP_CreateFile(char *fileName){
-  BF_ErrorCode err;
   // you create a file with file name
   CALL_BF(BF_CreateFile(fileName),-1);
   return 0;

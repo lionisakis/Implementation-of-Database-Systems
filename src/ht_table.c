@@ -17,6 +17,10 @@
 
 
 int HT_CreateFile(char *fileName,  int buckets){
+
+    CALL_OR_DIE(HT_CreateFile(fileName, buckets))
+
+
     return 0;
 }
 
