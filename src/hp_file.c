@@ -130,7 +130,7 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
   // if the size==1 then you insert in the first block
   if(size==1){
     // if there is room in this block, add it here
-    if(blockInfo.numOfRecords<hp_info->maxRecordFirstBlock){
+    if(blockInfo.numOfRecords < hp_info->maxRecordFirstBlock){
       insertMethod=0;
     }
     else{
@@ -138,7 +138,7 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
     }
   }
   else{
-    if(blockInfo.numOfRecords<hp_info->maxRecordPerBlock){
+    if(blockInfo.numOfRecords < hp_info->maxRecordPerBlock){
       insertMethod=0;
     }
     else{
