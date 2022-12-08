@@ -23,6 +23,14 @@ int hashValue(int buckets, int value){
   return value % buckets;
 }
 
+// returns the HT_block_info from the block. 
+//On error returns NULL
+void HT_Get_HT_Block_Info(void* data,HT_block_info* blockInfo){
+  // the HT_block_info is always at the last bytes
+  memcpy(blockInfo,data+POS_HT_block_info,sizeof(HT_block_info));
+}
+
+
 int HT_CreateFile(char *fileName,  int buckets){
   // you create a file with file name
   CALL_HT(BF_CreateFile(fileName),-1);
@@ -113,7 +121,7 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   int buckets = ht_info->numBuckets;
 
   //in which bucket should I search?
-  int myBucket= hashValue(ht_info->numBuckets, value);
+  int myBucket= hashValue(ht_info->numBuckets, *(int *)value);
 
   //find first block to get hash table
   BF_Block* block;
@@ -153,14 +161,14 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
     Record* rec = (Record*)data;
     // checking the block's records
     for(int i=0; i<blockRecords; i++) {
-      if(rec[i].id == value)
+      if(rec[i].id == *(int *)value)
         printRecord(rec[i]);
     }
     //find next block to check
     if (myBlockInfo.nextBlockNumber!=-1){
-      CALL_BF(BF_UnpinBlock(myBlock),-1);
+      CALL_HT(BF_UnpinBlock(myBlock),-1);
       int next = myBlockInfo.nextBlockNumber;
-      CALL_BF(BF_GetBlock(ht_info->fileDesc,next,myBlock),-1);
+      CALL_HT(BF_GetBlock(ht_info->fileDesc,next,myBlock),-1);
       myData = BF_Block_GetData(myBlock); 
       
       //find next block's hp_block_info
@@ -173,20 +181,12 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   }
 
   // set it so anyone can take it
-  CALL_BF(BF_UnpinBlock(block),-1);
-  CALL_BF(BF_UnpinBlock(myBlock),-1);
+  CALL_HT(BF_UnpinBlock(block),-1);
+  CALL_HT(BF_UnpinBlock(myBlock),-1);
 
   BF_Block_Destroy(&block);
   BF_Block_Destroy(&myBlock);
   return numberOfVisitedBlocks;
 }
-
-// returns the HT_block_info from the block. 
-//On error returns NULL
-void HP_Get_HP_Block_Info(void* data,HT_block_info* blockInfo){
-  // the HT_block_info is always at the last bytes
-  memcpy(blockInfo,data+POS_HT_block_info,sizeof(HT_block_info));
-}
-
 
 
