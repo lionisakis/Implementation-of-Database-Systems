@@ -128,11 +128,15 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   //getting the hash table
   int hashtable[buckets];
   memcpy(hashtable,data+ht_info->posHashTable,sizeof(int)*buckets);
+  
+  int blockId=hashtable[myBucket];
+  if(blockId==-1)
+    return 0;
 
   //find my id block
   BF_Block* myBlock;
   BF_Block_Init(&myBlock);
-  CALL_HT(BF_GetBlock(file_desc, hashtable[myBucket], block), -1);
+  CALL_HT(BF_GetBlock(file_desc, blockId, block), -1);
 
   //find data & ht_block_info of my id block
   void* myData = BF_Block_GetData(myBlock); 
