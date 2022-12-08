@@ -111,6 +111,76 @@ int HT_CloseFile( HT_info* ht_info ){
 }
 
 int HT_InsertEntry(HT_info* ht_info, Record record){
+  BF_Block* block;
+  BF_Block_Init(&block);
+  BF_GetBlock(ht_info->fileDesc,0,block);
+  void* data=BF_Block_GetData(block);
+  
+  //getting the hash table
+  int buckets=ht_info->numBuckets;
+  int hashTable[buckets];
+  memcpy(hashTable,data+ht_info->posHashTable,sizeof(int)*buckets);
+
+  // find the block of the hashTable
+  int myBucket= hashValue(ht_info->numBuckets, record.id);
+  int currentBlock=hashTable[myBucket];
+  int nextBlock=-1;
+  
+  // Check if there is a block
+  if(hashTable[myBucket]!=-1){
+    // while the nextBlock is not -1
+    HT_block_info blockInfo;
+    HT_Get_HT_Block_Info(data,&blockInfo);
+    int nextBlock=blockInfo.nextBlockNumber;
+    while(nextBlock!=-1){
+      // unlock the previous block
+      BF_UnpinBlock(block);
+      // get the next block
+      BF_GetBlock(ht_info->fileDesc,nextBlock,block);
+      void* data=BF_Block_GetData(block);
+      HT_Get_HT_Block_Info(data,&blockInfo);
+      // change the data
+      currentBlock=nextBlock;
+      nextBlock=blockInfo.nextBlockNumber;
+    }
+  }
+
+  // if there is at least 1 block
+  // then if you have to make a new block
+  // it will not be the first block
+  int flag=0;
+  for(int i=0;i<buckets;i++){
+    if(hashTable[i]!=-1){
+      flag=1;
+      break;
+    }
+  }
+
+  // it is the first block of the bucket that we will make 
+  if(currentBlock==-1){
+    // there is room in the first block that no other bucket has taken
+    if(flag==0){
+      // copy the new block to the hashTable
+      hashTable[myBucket]=0;
+      memcpy(data+ht_info->posHashTable,hashTable,sizeof(int)*ht_info->numBuckets);
+  
+      // pass the new HT_block_info 
+      HT_block_info blockInfo;
+      void* data=BF_Block_GetData(block);
+      HT_Get_HT_Block_Info(data,&blockInfo);
+      blockInfo.numOfRecords++;
+      memcpy(data+POS_HT_block_info,&blockInfo,sizeof(HT_block_info));
+
+      // pass the record
+      memcpy(data,&record,sizeof(Record));
+      return 0;
+    }
+  }
+  else{
+    // there is at least 1 block 
+  }
+
+  BF_Block_Destroy(&block);
   return 0;
 }
 
@@ -121,7 +191,7 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   int buckets = ht_info->numBuckets;
 
   //in which bucket should I search?
-  int myBucket= hashValue(ht_info->numBuckets, *(int *)value);
+  int myBucket= hashValue(ht_info->numBuckets, 0);
 
   //find first block to get hash table
   BF_Block* block;
@@ -144,7 +214,7 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   //find my id block
   BF_Block* myBlock;
   BF_Block_Init(&myBlock);
-  CALL_HT(BF_GetBlock(file_desc, blockId, block), -1);
+  CALL_HT(BF_GetBlock(file_desc, blockId, myBlock), -1);
 
   //find data & ht_block_info of my id block
   void* myData = BF_Block_GetData(myBlock); 
