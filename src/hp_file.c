@@ -152,7 +152,7 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
     BF_Block_SetDirty(block);
     BF_UnpinBlock(block);
     BF_Block_Destroy(&block);
-    return 0;
+    return size-1;
   }
   else{
     // set that there will be a next block
@@ -183,7 +183,7 @@ int HP_InsertEntry(HP_info* hp_info, Record record){
     BF_UnpinBlock(newBLock);
     BF_Block_Destroy(&newBLock);
     
-    return 0;
+    return size;
   }
   return -1;
 }

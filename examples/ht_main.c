@@ -26,13 +26,11 @@ int main() {
   Record record;
   srand(12569874);
   int r;
-  printf("Insert Entries\n");
-  for (int id = 0; id < 1; ++id) {
+  for (int id = 0; id < RECORDS_NUM; ++id) {
     record = randomRecord();
     HT_InsertEntry(info, record);
   }
 
-  printf("RUN PrintAllEntries\n");
   int id = rand() % RECORDS_NUM;
   HT_GetAllEntries(info, &id);
 
