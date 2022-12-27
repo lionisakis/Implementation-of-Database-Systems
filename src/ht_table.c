@@ -305,7 +305,7 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   memcpy(hashtable,data+ht_info->posHashTable,sizeof(int)*buckets);
   
   //in which bucket should I search?
-  int myBucket= HT_hashValue(*(int*)value,ht_info->numBuckets);
+  int myBucket= HT_hashValue(*(int*)value, ht_info->numBuckets);
 
   int blockId=hashtable[myBucket];
   if(blockId==-1)
