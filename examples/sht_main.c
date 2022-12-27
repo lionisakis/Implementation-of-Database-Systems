@@ -37,12 +37,9 @@ int main() {
 
     // Κάνουμε εισαγωγή τυχαίων εγγραφών τόσο στο αρχείο κατακερματισμού τις οποίες προσθέτουμε και στο δευτερεύον ευρετήριο
     printf("Insert Entries\n");
-    for (int id = 0; id < 3; ++id) {
+    for (int id = 0; id < RECORDS_NUM; ++id) {
         record = randomRecord();
-        printf("%d\t",id);
-        // printRecord(record);
         int block_id = HT_InsertEntry(info, record);
-        // printf("block_id %d\n",block_id);
         SHT_SecondaryInsertEntry(index_info, record, block_id);
     }
 

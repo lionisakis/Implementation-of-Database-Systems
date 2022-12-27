@@ -27,7 +27,6 @@ int main() {
 
   Record record;
   srand(12569874);
-  int r;
   for (int id = 0; id < RECORDS_NUM; ++id) {
     record = randomRecord();
     HT_InsertEntry(info, record);
@@ -36,9 +35,10 @@ int main() {
   int id = rand() % RECORDS_NUM;
   HT_GetAllEntries(info, &id);
 
+  HT_CloseFile(info);
+
   HashStatistics(FILE_NAME);
 
-  HT_CloseFile(info);
   BF_Close();
 }
 
@@ -67,7 +67,10 @@ int HashStatistics(char* fileName) {
   void* fistData = BF_Block_GetData(firstBlock); 
   HT_block_info firstBlockInfo;
   HT_Get_HT_Block_Info(fistData,&firstBlockInfo);
-
+  
+  CALL_OR_DIE(BF_UnpinBlock(firstBlock));
+  BF_Block_Destroy(&firstBlock);
+  
   //getting the hash table
   int hashtable[buckets];
   memcpy(hashtable,fistData+ht_info->posHashTable,sizeof(int)*buckets);
@@ -76,14 +79,17 @@ int HashStatistics(char* fileName) {
   int max=0;
   int min=0;
   int sum=0;
+  
+
   for(int i=0; i<buckets; i++) {
 
-    //find current block
-    BF_Block* block;
-    BF_Block_Init(&block);
+    
     int blockId=hashtable[i];
     if(blockId==-1)
       continue;
+    //find current block
+    BF_Block* block;
+    BF_Block_Init(&block);
     CALL_OR_DIE(BF_GetBlock(file_desc, blockId, block));
 
     //find data & ht_block_info
@@ -126,6 +132,9 @@ int HashStatistics(char* fileName) {
     recordsPerBucket[i][2]= min;
     if(overflowBlocksPerBucket[i]>0)
       overflowBuckets++;
+    
+    CALL_OR_DIE(BF_UnpinBlock(block));
+    BF_Block_Destroy(&block);
   }
 
   long int averageBlocksPerBucket = fileBlocks/buckets;
@@ -147,4 +156,7 @@ int HashStatistics(char* fileName) {
       printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
     }
   }
+  
+  HT_CloseFile(ht_info);
+  return 0;
 }

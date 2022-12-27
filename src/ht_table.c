@@ -137,15 +137,17 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
       data=BF_Block_GetData(block);
     }
     // while the nextBlock is not -1
-    HT_Get_HT_Block_Info(data,&blockInfo);
-    int nextBlock=blockInfo.nextBlockNumber;
+    memcpy(&blockInfo,data+POS_HT_block_info,sizeof(HT_block_info));
+    nextBlock=blockInfo.nextBlockNumber;
+    
     while(nextBlock!=-1){
       // unlock the previous block
       BF_UnpinBlock(block);
       // get the next block
       BF_GetBlock(ht_info->fileDesc,nextBlock,block);
       data=BF_Block_GetData(block);
-      HT_Get_HT_Block_Info(data,&blockInfo);
+      memcpy(&blockInfo,data+POS_HT_block_info,sizeof(HT_block_info));
+
       // change the data
       currentBlock=nextBlock;
       nextBlock=blockInfo.nextBlockNumber;
@@ -174,14 +176,14 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
       memcpy(data+ht_info->posHashTable,hashTable,sizeof(int)*ht_info->numBuckets);
   
       // pass the new HT_block_info 
-      HT_block_info blockInfo;
-      void* data=BF_Block_GetData(block);
-      HT_Get_HT_Block_Info(data,&blockInfo);
-      blockInfo.numOfRecords++;
-      memcpy(data+POS_HT_block_info,&blockInfo,sizeof(HT_block_info));
+      HT_block_info blockInfo2;
+      void* data2=BF_Block_GetData(block);
+      HT_Get_HT_Block_Info(data,&blockInfo2);
+      blockInfo2.numOfRecords++;
+      memcpy(data2+POS_HT_block_info,&blockInfo2,sizeof(HT_block_info));
 
       // pass the record
-      memcpy(data,&record,sizeof(Record));
+      memcpy(data2,&record,sizeof(Record));
 
       // say that the first block is changed and unpin it
       BF_Block_SetDirty(block);
@@ -202,16 +204,16 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
 
       // allocate a new block and get the data
       CALL_HT(BF_AllocateBlock(ht_info->fileDesc,block),-1);
-      void* data=BF_Block_GetData(block);
+      void* data2=BF_Block_GetData(block);
 
       // form the new blockInfo
-      HT_block_info blockInfo;
-      blockInfo.nextBlockNumber=-1;
-      blockInfo.numOfRecords=1;
+      HT_block_info blockInfo2;
+      blockInfo2.nextBlockNumber=-1;
+      blockInfo2.numOfRecords=1;
 
       // copy all the data to the block
-      memcpy(data+POS_HT_block_info,&blockInfo,sizeof(HT_block_info));
-      memcpy(data,&record,sizeof(Record));
+      memcpy(data2+POS_HT_block_info,&blockInfo2,sizeof(HT_block_info));
+      memcpy(data2,&record,sizeof(Record));
 
       // say that the first block is changed and unpin it
       // destroy the block
@@ -226,15 +228,15 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
     int insert=1;
     if(currentBlock==0 && blockInfo.numOfRecords<ht_info->maxRecordFirstBlock)
       insert=0;
-    else if(currentBlock>0 && blockInfo.numOfRecords<ht_info->maxRecordPerBlock)
+    else if(currentBlock>0 && blockInfo.numOfRecords<ht_info->maxRecordPerBlock-1)
       insert=0;
-
 
     // it is full so insert new block
     if(insert){
       // copy the new block to the hashTable
-      CALL_HT(BF_GetBlockCounter(ht_info->fileDesc,&blockInfo.nextBlockNumber),-1);
-      int next=blockInfo.nextBlockNumber;
+      int size;
+      CALL_HT(BF_GetBlockCounter(ht_info->fileDesc,&size),-1);
+      blockInfo.nextBlockNumber=size;
       memcpy(data+POS_HT_block_info,&blockInfo,sizeof(HT_block_info));
 
       // say that the first block is changed and unpin it
@@ -243,32 +245,28 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
 
       // allocate a new block and get the data
       CALL_HT(BF_AllocateBlock(ht_info->fileDesc,block),-1);
-      void* data=BF_Block_GetData(block);
+      void* data2=BF_Block_GetData(block);
 
-      memcpy(data,&record,sizeof(Record));
+      memcpy(data2,&record,sizeof(Record));
 
       // form the new blockInfo
-      HT_block_info blockInfo;
-      blockInfo.nextBlockNumber=-1;
-      blockInfo.numOfRecords=1;
+      HT_block_info blockInfo2;
+      blockInfo2.numOfRecords=1;
+      blockInfo2.nextBlockNumber=-1;
 
       // copy all the data to the block
-      memcpy(data+POS_HT_block_info,&blockInfo,sizeof(HT_block_info));
+      memcpy(data2+POS_HT_block_info,&blockInfo2,sizeof(HT_block_info));
 
       // say that the first block is changed and unpin it
       // destroy the block
       BF_Block_SetDirty(block);
       CALL_HT(BF_UnpinBlock(block),-1);
       BF_Block_Destroy(&block);
-      return next;
+      return size;
     }
     else{
       memcpy(data+blockInfo.numOfRecords*sizeof(Record),&record,sizeof(Record));
 
-      // insert the record to the correct position
-      Record* record=(Record*)(data+(blockInfo.numOfRecords-1)*sizeof(Record));
-      record=(Record*)(data+blockInfo.numOfRecords*sizeof(Record));
-      
       // change HT_block_info to data
       blockInfo.numOfRecords++;
       memcpy(data+POS_HT_block_info,&blockInfo,sizeof(HT_block_info));

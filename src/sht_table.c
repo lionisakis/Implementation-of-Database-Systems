@@ -19,6 +19,14 @@
 #define POS_SHT_block_info BF_BLOCK_SIZE-sizeof(SHT_block_info)-1
 #define POS_SHT_info BF_BLOCK_SIZE-sizeof(SHT_block_info)-sizeof(SHT_info)-1
 
+// returns the SHT_block_info from the block. 
+//On error returns NULL
+void SHT_Get_SHT_Block_Info(void* data,SHT_block_info* blockInfo){
+  // the SHT_block_info is always at the last bytes
+  memcpy(blockInfo,data+POS_SHT_block_info,sizeof(SHT_block_info));
+}
+
+
 int SHT_hashValue(char* string,int buckets){
   int sum=0;
   while(*string!='\0'){
@@ -123,9 +131,9 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
 
   // find the block of the hashTable
   int myBucket= SHT_hashValue(record.name,sht_info->numBuckets);
-  printf("Bucket[%d]: %d\n",myBucket,hashTable[myBucket]);
   int currentBlock=hashTable[myBucket];
   int nextBlock=-1;
+  
   SHT_block_info blockInfo;
   // Check if there is a block
   if(hashTable[myBucket]!=-1){
@@ -136,7 +144,8 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
     }
     // while the nextBlock is not -1
     memcpy(&blockInfo,data+POS_SHT_block_info,sizeof(SHT_block_info));
-    int nextBlock=blockInfo.nextBlockNumber;
+    nextBlock=blockInfo.nextBlockNumber;
+    
     while(nextBlock!=-1){
       // unlock the previous block
       BF_UnpinBlock(block);
@@ -144,6 +153,7 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
       BF_GetBlock(sht_info->fileDesc,nextBlock,block);
       data=BF_Block_GetData(block);
       memcpy(&blockInfo,data+POS_SHT_block_info,sizeof(SHT_block_info));
+
       // change the data
       currentBlock=nextBlock;
       nextBlock=blockInfo.nextBlockNumber;
@@ -172,17 +182,17 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
       memcpy(data+sht_info->posHashTable,hashTable,sizeof(int)*sht_info->numBuckets);
   
       // pass the new HT_block_info 
-      SHT_block_info blockInfo;
-      void* data=BF_Block_GetData(block);
-      memcpy(&blockInfo,data+POS_SHT_block_info,sizeof(SHT_block_info));
-      blockInfo.numOfInfo++;
-      memcpy(data+POS_SHT_block_info,&blockInfo,sizeof(SHT_block_info));
+      SHT_block_info blockInfo2;
+      void* data2=BF_Block_GetData(block);
+      SHT_Get_SHT_Block_Info(data,&blockInfo2);
+      blockInfo2.numOfInfo++;
+      memcpy(data2+POS_SHT_block_info,&blockInfo2,sizeof(SHT_block_info));
 
-      // pass the record
+      // pass the SHT_node_info
       SHT_node_info nodeInfo;
-      strcpy(nodeInfo.name,record.name);
       nodeInfo.blockID=block_id;
-      memcpy(data,&nodeInfo,sizeof(SHT_node_info));
+      strcpy(nodeInfo.name,record.name);
+      memcpy(data2,&nodeInfo,sizeof(SHT_node_info));
 
       // say that the first block is changed and unpin it
       BF_Block_SetDirty(block);
@@ -203,21 +213,20 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
 
       // allocate a new block and get the data
       CALL_SHT(BF_AllocateBlock(sht_info->fileDesc,block),-1);
-      void* data=BF_Block_GetData(block);
+      void* data2=BF_Block_GetData(block);
 
       // form the new blockInfo
-      SHT_block_info blockInfo;
-      blockInfo.nextBlockNumber=-1;
-      blockInfo.numOfInfo=1;
+      SHT_block_info blockInfo2;
+      blockInfo2.nextBlockNumber=-1;
+      blockInfo2.numOfInfo=1;
 
       // copy all the data to the block
-      memcpy(data+POS_SHT_block_info,&blockInfo,sizeof(SHT_block_info));
-      
-      // pass the record
+      memcpy(data2+POS_SHT_block_info,&blockInfo2,sizeof(SHT_block_info));
+      // pass the SHT_node_info
       SHT_node_info nodeInfo;
-      strcpy(nodeInfo.name,record.name);
       nodeInfo.blockID=block_id;
-      memcpy(data,&nodeInfo,sizeof(SHT_node_info));
+      strcpy(nodeInfo.name,record.name);
+      memcpy(data2,&nodeInfo,sizeof(SHT_node_info));
 
       // say that the first block is changed and unpin it
       // destroy the block
@@ -230,18 +239,17 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
   else{
     // check if the record that you are going to insert is full or not
     int insert=1;
-    printf("blockInfo.numOfInfo %d sht_info->maxInfoFirstBlock %d\n",blockInfo.numOfInfo,sht_info->maxInfoFirstBlock);
     if(currentBlock==0 && blockInfo.numOfInfo<sht_info->maxInfoFirstBlock)
       insert=0;
-    else if(currentBlock>0 && blockInfo.numOfInfo<sht_info->maxInfoPerBlock)
+    else if(currentBlock>0 && blockInfo.numOfInfo<sht_info->maxInfoPerBlock-1)
       insert=0;
 
-    printf("insert: %d\n",insert);
     // it is full so insert new block
     if(insert){
       // copy the new block to the hashTable
-      CALL_SHT(BF_GetBlockCounter(sht_info->fileDesc,&blockInfo.nextBlockNumber),-1);
-      int next=blockInfo.nextBlockNumber;
+      int size;
+      CALL_SHT(BF_GetBlockCounter(sht_info->fileDesc,&size),-1);
+      blockInfo.nextBlockNumber=size;
       memcpy(data+POS_SHT_block_info,&blockInfo,sizeof(SHT_block_info));
 
       // say that the first block is changed and unpin it
@@ -250,55 +258,45 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
 
       // allocate a new block and get the data
       CALL_SHT(BF_AllocateBlock(sht_info->fileDesc,block),-1);
-      void* data=BF_Block_GetData(block);
+      void* data2=BF_Block_GetData(block);
 
-      // pass the record
+      // pass the SHT_node_info
       SHT_node_info nodeInfo;
-      strcpy(nodeInfo.name,record.name);
       nodeInfo.blockID=block_id;
-      memcpy(data,&nodeInfo,sizeof(SHT_node_info));
+      strcpy(nodeInfo.name,record.name);
+      memcpy(data2,&nodeInfo,sizeof(SHT_node_info));
 
       // form the new blockInfo
-      HT_block_info blockInfo;
-      blockInfo.nextBlockNumber=-1;
-      blockInfo.numOfRecords=1;
+      SHT_block_info blockInfo2;
+      blockInfo2.numOfInfo=1;
+      blockInfo2.nextBlockNumber=-1;
 
       // copy all the data to the block
-      memcpy(data+POS_SHT_block_info,&blockInfo,sizeof(SHT_block_info));
+      memcpy(data2+POS_SHT_block_info,&blockInfo2,sizeof(SHT_block_info));
 
       // say that the first block is changed and unpin it
       // destroy the block
       BF_Block_SetDirty(block);
       CALL_SHT(BF_UnpinBlock(block),-1);
       BF_Block_Destroy(&block);
-      return next;
+      return size;
     }
     else{
-      // pass the record
-      printf("1\n");
+      // pass the SHT_node_info
       SHT_node_info nodeInfo;
-      printf("2\n");
-      strcpy(nodeInfo.name,record.name);
-      printf("3\n");
       nodeInfo.blockID=block_id;
-      printf("4\n");
-      memcpy(data+blockInfo.numOfInfo*sizeof(Record),&nodeInfo,sizeof(SHT_node_info));
-      printf("5\n");
+      strcpy(nodeInfo.name,record.name);
+      memcpy(data+blockInfo.numOfInfo*sizeof(SHT_node_info),&nodeInfo,sizeof(SHT_node_info));
 
       // change HT_block_info to data
       blockInfo.numOfInfo++;
-      printf("6\n");
       memcpy(data+POS_SHT_block_info,&blockInfo,sizeof(SHT_block_info));
-      printf("7\n");
 
       // say that the first block is changed and unpin it
       // destroy the block
       BF_Block_SetDirty(block);
-      printf("8\n");
       CALL_SHT(BF_UnpinBlock(block),-1);
-      printf("9\n");
       BF_Block_Destroy(&block);
-      printf("10\n");
       return currentBlock;
     }
   }
@@ -306,7 +304,7 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
 }
 
 int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name){
-
+  return -1;
 }
 
 

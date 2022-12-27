@@ -3,5 +3,5 @@ then
     rm -f data.db
     rm -f index.db
 fi
-make hp
-./build/hp_main
+make ht
+./build/ht_main

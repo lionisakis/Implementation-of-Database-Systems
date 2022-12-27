@@ -1,8 +1,81 @@
 {
-    "files.associations": {
-        "stdio.h": "c",
-        "stdlib.h": "c",
-        "type_traits": "c",
-        "sht_table.h": "c"
-    }
+	"c_project": {
+		// Directory στο οποίο βρίσκεται το πρόγραμμα
+		"dir": "",
+
+		// Όνομα του εκτελέσιμου προγράμματος
+		"program": "./build/sht_main",
+
+		// Ορίσματα του προγράμματος.
+		// - Για ανακατεύθυνση εισόδου βάζουμε ορίσματα: "<", "input-file"
+		// - Για ανακατεύθυνση εξόδου  βάζουμε ορίσματα: ">", "output-file"
+		//
+		// Θέτωντας ένα όρισμα σε #, το όρισμα αυτό και τα επόμενά του αγνοούνται
+		// όταν τρέχουμε το πρόγραμμα στον debugger.
+        
+        "arg1": "#",
+        "arg2": "./input/sample3.txt",
+		"arg3": "-p",
+		"arg4": "5",
+		"arg5": "-t",
+		"arg6": "4",
+		"arg7": "-c",
+		"arg8": "4",
+		"arg9": "#",
+	},
+	"files.associations": {
+		"iostream": "cc",
+		"array": "cc",
+		"atomic": "cc",
+		"bit": "cc",
+		"*.tcc": "cc",
+		"cctype": "cc",
+		"clocale": "cc",
+		"cmath": "cc",
+		"cstdarg": "cc",
+		"cstddef": "cc",
+		"cstdint": "cc",
+		"cstdio": "cc",
+		"cstdlib": "cc",
+		"cwchar": "cc",
+		"cwctype": "cc",
+		"deque": "cc",
+		"unordered_map": "cc",
+		"vector": "cc",
+		"exception": "cc",
+		"algorithm": "cc",
+		"functional": "cc",
+		"iterator": "cc",
+		"memory": "cc",
+		"memory_resource": "cc",
+		"numeric": "cc",
+		"optional": "cc",
+		"random": "cc",
+		"string_view": "cc",
+		"system_error": "cc",
+		"tuple": "cc",
+		"type_traits": "cc",
+		"utility": "cc",
+		"fstream": "cc",
+		"initializer_list": "cc",
+		"iosfwd": "cc",
+		"istream": "cc",
+		"limits": "cc",
+		"new": "cc",
+		"ostream": "cc",
+		"sstream": "cc",
+		"stdexcept": "cc",
+		"streambuf": "cc",
+		"typeinfo": "cc",
+		"string": "cc",
+		"signal.h": "c",
+		"string.h": "c",
+		"stdlib.h": "c",
+		"stdio.h": "c",
+		"fcntl.h": "c",
+		"error.h": "c",
+		"allinclude.h": "c",
+		"child.h": "c",
+		"queue.h": "c"
+	},
 }
