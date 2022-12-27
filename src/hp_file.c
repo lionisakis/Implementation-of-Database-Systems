@@ -34,7 +34,7 @@ int HP_CreateFile(char *fileName){
   // create the info to store
   HP_info info;
 
-  info.fileDesc = file_desc;
+  info.fileDesc = -1;
   info.maxRecordFirstBlock = (BF_BLOCK_SIZE-sizeof(HP_info)-sizeof(HP_block_info)-1)/sizeof(Record);
   info.maxRecordPerBlock=(BF_BLOCK_SIZE-sizeof(HP_block_info)-1)/sizeof(Record);
 
@@ -87,6 +87,8 @@ HP_info* HP_OpenFile(char *fileName){
   }
 
   memcpy(info,data+POS_HP_info,sizeof(HP_info));
+  info->fileDesc=file_desc;
+  memcpy(data+POS_HP_info,info,sizeof(HP_info));
 
   // unpin the block and destroy it
   CALL_BF(BF_UnpinBlock(block),NULL);
