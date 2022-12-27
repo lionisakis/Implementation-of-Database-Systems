@@ -1,45 +1,63 @@
-# hp:
-# 	@echo " Compile hp_main ...";
-# 	gcc -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ ./examples/hp_main.c ./src/record.c ./src/hp_file.c -lbf -o ./build/hp_main -O2
-
-# bf:
-# 	@echo " Compile bf_main ...";
-# 	gcc -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ ./examples/bf_main.c ./src/record.c -lbf -o ./build/bf_main -O2;
-
-# ht:
-# 	@echo " Compile hp_main ...";
-# 	gcc -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ ./examples/ht_main.c ./src/record.c ./src/ht_table.c -lbf -o ./build/ht_main -O2
-
-# sht:
-# 	@echo " Compile hp_main ...";
-# 	gcc -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ ./examples/sht_main.c ./src/record.c ./src/sht_table.c ./src/ht_table.c -lbf -o ./build/sht_main -O2
-
-IDIR =./$(dir $(lastword $(MAKEFILE_LIST)))include
-MDIR =./$(dir $(lastword $(MAKEFILE_LIST)))src/
-EXA =./$(dir $(lastword $(MAKEFILE_LIST)))examples/
+IDIR =$(dir $(lastword $(MAKEFILE_LIST)))include
+SRC =$(dir $(lastword $(MAKEFILE_LIST)))src
+BLD =$(dir $(lastword $(MAKEFILE_LIST)))build
+EXA =$(dir $(lastword $(MAKEFILE_LIST)))examples
 
 C=gcc
-CFLAGS= -g -Wall -MMD -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ 
+CFLAGS= -g -Wall -MMD -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ -lbf 
 
-LIBS=-lm -lpthread -lrt -g -Wall -MMD -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ -lbf 
+LIBS=-lm -lpthread -lrt -g -Wall -MMD
 
-OBJ = ./examples/sht_main.o ./src/ht_table.o ./src/sht_table.o ./src/record.o
-D= ./examples/sht_main.d ./src/ht_table.d ./src/sht_table.d ./src/record.d
-EXEC= ./build/sht_main
+D= $(SRC)/hp_file.d $(EXA)/hp_main.d $(EXA)/ht_main.d $(EXA)/sht_main.d $(SRC)/sht_table.d $(SRC)/ht_table.d $(SRC)/hp_table.d $(SRC)/record.d
+
+OBJ_HP= $(EXA)/hp_main.o $(SRC)/hp_file.o $(SRC)/record.o
+EXEC_HP= $(BLD)/hp_main
+
+OBJ_HT= $(EXA)/ht_main.o $(SRC)/ht_table.o $(SRC)/record.o
+EXEC_HT= $(BLD)/ht_main
+
+OBJ_SHT= $(EXA)/sht_main.o $(SRC)/sht_table.o $(SRC)/ht_table.o $(SRC)/record.o
+EXEC_SHT= $(BLD)/sht_main
 
 ARGS = 
 
-$(EXEC): $(OBJ) 
-	$(C) -o $(EXEC) $(OBJ) $(CXXFLAGS) $(LIBS) 
+$(EXEC_HP): $(OBJ_HP)
+	@echo " --- Compile hp_main --- ";
+	$(C) -o $(EXEC_HP) $(OBJ_HP) $(CFLAGS) $(LIBS)
 
-run: $(EXEC)
-	./$(EXEC) $(ARGS) 
+$(EXEC_HT): $(OBJ_HT)
+	@echo " --- Compile ht_main --- ";
+	$(C) -o $(EXEC_HT) $(OBJ_HT) $(CFLAGS) $(LIBS)
+
+$(EXEC_SHT): $(OBJ_SHT)
+	@echo " --- Compile sht_main --- ";
+	$(C) -o $(EXEC_SHT) $(OBJ_SHT) $(CFLAGS) $(LIBS)
+
+hp: $(OBJ_HP)
+	@echo " --- Compile hp_main --- ";
+	$(C) -o $(EXEC_HP) $(OBJ_HP) $(CFLAGS) $(LIBS)
+
+ht: $(OBJ_HT)
+	@echo " --- Compile ht_main --- ";
+	$(C) -o $(EXEC_HT) $(OBJ_HT) $(CFLAGS) $(LIBS)
+	
+sht: $(OBJ_SHT)
+	@echo " --- Compile sht_main --- ";
+	$(C) -o $(EXEC_SHT) $(OBJ_SHT) $(CFLAGS) $(LIBS)
+
+hp-run: $(EXEC_HP)
+	@echo " --- Run hp_main --- ";
+	$(EXEC_HP) $(ARGS) 
+
+ht-run: $(EXEC_HT)
+	@echo " --- Run ht_main --- ";
+	$(EXEC_HT) $(ARGS) 
+
+sht-run: $(EXEC_SHT)
+	@echo " --- Run sht_main --- ";
+	$(EXEC_SHT) $(ARGS) 
 
 .PHONY: clean
 
 clean:
-	rm -f $(OBJ) $(EXEC) $(D) $(OUTPUT) data.db index.db
-
-valgrind: $(OBJ)
-	$(C) -o $(EXEC) $^ $(CXXFLAGS) $(LIBS)
-	valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes ./$(EXEC) $(ARGS) 
+	rm -f $(OBJ_HP) $(OBJ_HT) $(OBJ_SHT) $(EXEC_SHT) $(EXEC_HT) $(EXEC_HP) $(D) $(OUTPUT) data.db index.db

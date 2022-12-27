@@ -20,13 +20,12 @@
 int main() {
   BF_Init(LRU);
 
-  int result=HP_CreateFile(FILE_NAME);
+  HP_CreateFile(FILE_NAME);
   HP_info* info = HP_OpenFile(FILE_NAME);
 
   
   Record record;
   srand(12569874);
-  int r;
   printf("Insert Entries\n");
   for (int id = 0; id < RECORDS_NUM; ++id) {
     record = randomRecord();
