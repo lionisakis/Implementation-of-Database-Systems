@@ -50,18 +50,14 @@ int HashStatistics(char* fileName) {
   long int buckets = ht_info->numBuckets;
 
   //Initialization
-  long int blocksPerBucket[buckets];
   long int recordsPerBucket[buckets][3];
   long int overflowBlocksPerBucket[buckets];
   long int overflowBuckets=0;
   long int fileBlocks=0;
 
-  for(int i=0; i<buckets; i++) {
-    blocksPerBucket[i]=0;
+  for(int i=0; i<buckets; i++)
     overflowBlocksPerBucket[i]=0;
-  }
-    
-
+  
   //find first block to get hash table
   BF_Block* firstBlock;
   BF_Block_Init(&firstBlock);
@@ -125,7 +121,6 @@ int HashStatistics(char* fileName) {
         flag=-1;
     }
 
-    blocksPerBucket[i]=bucketBlocks;
     recordsPerBucket[i][0] = max;
     recordsPerBucket[i][1] = sum/bucketBlocks;
     recordsPerBucket[i][2]= min;
