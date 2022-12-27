@@ -3,8 +3,6 @@
 #include <record.h>
 
 
-
-
 typedef struct {
     int fileDesc;
     long int numBuckets;
@@ -17,6 +15,10 @@ typedef struct {
    int numOfRecords;
    int nextBlockNumber;
 } HT_block_info;
+
+
+void HT_Get_HT_Block_Info(void* data,HT_block_info* blockInfo);
+
 
 /*Η συνάρτηση HT_CreateFile χρησιμοποιείται για τη δημιουργία
 και κατάλληλη αρχικοποίηση ενός άδειου αρχείου κατακερματισμού

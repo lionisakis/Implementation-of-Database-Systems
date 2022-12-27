@@ -24,18 +24,21 @@ int HashStatistics(char* fileName) {
 
   //Initialization
   long int blocksPerBucket[buckets];
-  long int recordsPerBucket[buckets][2];
+  long int recordsPerBucket[buckets][3];
   long int overflowBlocksPerBucket[buckets];
   long int overflowBuckets=0;
   long int fileBlocks=0;
 
-  for(int i=0; i<buckets; i++)
+  for(int i=0; i<buckets; i++) {
+    blocksPerBucket[i]=0;
     overflowBlocksPerBucket[i]=0;
+  }
+    
 
   //find first block to get hash table
   BF_Block* firstBlock;
   BF_Block_Init(&firstBlock);
-  CALL_HT(BF_GetBlock(file_desc, 0, firstBlock), -1);
+  CALL_OR_DIE(BF_GetBlock(file_desc, 0, firstBlock));
 
   //find ht_block_info of first block
   void* fistData = BF_Block_GetData(firstBlock); 
@@ -57,8 +60,8 @@ int HashStatistics(char* fileName) {
     BF_Block_Init(&block);
     int blockId=hashtable[i];
     if(blockId==-1)
-      return 0;
-    CALL_HT(BF_GetBlock(file_desc, blockId, block), -1);
+      continue;
+    CALL_OR_DIE(BF_GetBlock(file_desc, blockId, block));
 
     //find data & ht_block_info
     void* data = BF_Block_GetData(block); 
@@ -69,6 +72,7 @@ int HashStatistics(char* fileName) {
     int flag=0;
     
     long int bucketBlocks=0;
+    overflowBuckets=0;
     while(flag!=-1) {
       fileBlocks++;
       bucketBlocks++;
@@ -81,9 +85,10 @@ int HashStatistics(char* fileName) {
       sum += blockRecords;
       //find next block to check
       if (blockInfo.nextBlockNumber!=-1){
+        overflowBuckets++;
         int next = blockInfo.nextBlockNumber;
-        CALL_HT(BF_UnpinBlock(block),-1);
-        CALL_HT(BF_GetBlock(ht_info->fileDesc,next,block),-1);
+        CALL_OR_DIE(BF_UnpinBlock(block));
+        CALL_OR_DIE(BF_GetBlock(ht_info->fileDesc,next,block));
         data = BF_Block_GetData(block); 
       
         //find next block's hp_block_info
@@ -95,28 +100,29 @@ int HashStatistics(char* fileName) {
     }
 
     blocksPerBucket[i]=bucketBlocks;
-    recordsPerBucket[buckets][0] = max;
-    recordsPerBucket[buckets][1] = sum/bucketBlocks;
-    recordsPerBucket[buckets][2]= min;
+    recordsPerBucket[i][0] = max;
+    recordsPerBucket[i][1] = sum/bucketBlocks;
+    recordsPerBucket[i][2]= min;
+    overflowBlocksPerBucket[i] = overflowBuckets;
   }
 
   long int averageBlocksPerBucket = fileBlocks/buckets;
 
-  printf("This file has %d", fileBlocks, "blocks\n");
+  printf("This file has %ld blocks\n", fileBlocks);
 
   for(int i=0; i<buckets; i++) {
-    printf ("Bucket %d", i, "Max Records: %d\n", recordsPerBucket[i][0]);
-    printf ("Bucket %d", i, "Average Records: %d\n", recordsPerBucket[i][1]);
-    printf ("Bucket %d", i, "Min Records: %d\n", recordsPerBucket[i][2]);
+    printf ("Bucket %d Max Records: %ld\n",i, recordsPerBucket[i][0]);
+    printf ("Bucket %d Average Records: %ld\n", i, recordsPerBucket[i][1]);
+    printf ("Bucket %d Min Records: %ld\n", i, recordsPerBucket[i][2]);
   }
 
-  printf("Average blocks per bucket %d\n", averageBlocksPerBucket);
+  printf("Average blocks per bucket %ld\n", averageBlocksPerBucket);
 
-  printf("Buckets with overflow blocks: %d\n", overflowBuckets);
+  printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
 
   for(int i=0; i<buckets; i++) {
     if(overflowBlocksPerBucket[i]>0) {
-      printf("Bucket %d", i, "Overflow Blocks: %d\n", overflowBlocksPerBucket[i]);
+      printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
     }
   }
 
