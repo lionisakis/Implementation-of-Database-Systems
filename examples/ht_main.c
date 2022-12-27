@@ -18,6 +18,7 @@
   }
 
 int HashStatistics(char* fileName) {
+  printf("FILE STATISTICS\n\n");
   HT_info* ht_info = HT_OpenFile(fileName);
   int file_desc = ht_info->fileDesc;
   long int buckets = ht_info->numBuckets;
@@ -116,7 +117,7 @@ int HashStatistics(char* fileName) {
     printf ("Bucket %d Min Records: %ld\n", i, recordsPerBucket[i][2]);
   }
 
-  printf("Average blocks per bucket %ld\n", averageBlocksPerBucket);
+  printf("Average blocks per bucket: %ld\n", averageBlocksPerBucket);
 
   printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
 
