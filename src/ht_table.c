@@ -19,7 +19,7 @@
 #define POS_HT_info BF_BLOCK_SIZE-sizeof(HT_block_info)-sizeof(HT_info)-1
 #define END_BF_BLOCKS -1;
 
-int hashValue(int value,int buckets){
+int HT_hashValue(int value,int buckets){
   return value % buckets;
 }
 
@@ -44,7 +44,7 @@ int HT_CreateFile(char *fileName,  int buckets){
 
   // create HT_info 
   HT_info info;
-  info.fileDesc = file_desc;
+  info.fileDesc = -1;
   info.maxRecordFirstBlock = (BF_BLOCK_SIZE-sizeof(HT_info)-sizeof(HT_block_info)-sizeof(int)*buckets-1)/sizeof(Record);
   info.maxRecordPerBlock=(BF_BLOCK_SIZE-sizeof(HT_block_info)-1)/sizeof(Record);
   info.numBuckets= buckets;
@@ -94,6 +94,8 @@ HT_info* HT_OpenFile(char *fileName){
     return NULL;
   }
   memcpy(info,data+POS_HT_info,sizeof(HT_info));
+  info->fileDesc=file_desc;
+  memcpy(data+POS_HT_info,info,sizeof(HT_info));
   // unpin the block and destroy it
   CALL_HT(BF_UnpinBlock(block),NULL);
   BF_Block_Destroy(&block);
@@ -122,7 +124,7 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
   memcpy(hashTable,data+ht_info->posHashTable,sizeof(int)*buckets);
 
   // find the block of the hashTable
-  int myBucket= hashValue(record.id,ht_info->numBuckets);
+  int myBucket= HT_hashValue(record.id,ht_info->numBuckets);
   int currentBlock=hashTable[myBucket];
   int nextBlock=-1;
   
@@ -303,7 +305,7 @@ int HT_GetAllEntries(HT_info* ht_info, void *value ){
   memcpy(hashtable,data+ht_info->posHashTable,sizeof(int)*buckets);
   
   //in which bucket should I search?
-  int myBucket= hashValue(*(int*)value,ht_info->numBuckets);
+  int myBucket= HT_hashValue(*(int*)value,ht_info->numBuckets);
 
   int blockId=hashtable[myBucket];
   if(blockId==-1)
