@@ -17,6 +17,32 @@
     }                         \
   }
 
+int HashStatistics(char* fileName);
+
+int main() {
+  BF_Init(LRU);
+
+  HT_CreateFile(FILE_NAME,10);
+  HT_info* info = HT_OpenFile(FILE_NAME);
+
+  Record record;
+  srand(12569874);
+  int r;
+  for (int id = 0; id < RECORDS_NUM; ++id) {
+    record = randomRecord();
+    HT_InsertEntry(info, record);
+  }
+
+  int id = rand() % RECORDS_NUM;
+  HT_GetAllEntries(info, &id);
+
+  HashStatistics(FILE_NAME);
+
+  HT_CloseFile(info);
+  BF_Close();
+}
+
+
 int HashStatistics(char* fileName) {
   printf("FILE STATISTICS\n\n");
   HT_info* ht_info = HT_OpenFile(fileName);
@@ -73,7 +99,6 @@ int HashStatistics(char* fileName) {
     int flag=0;
     
     long int bucketBlocks=0;
-    overflowBuckets=0;
     while(flag!=-1) {
       fileBlocks++;
       bucketBlocks++;
@@ -86,7 +111,7 @@ int HashStatistics(char* fileName) {
       sum += blockRecords;
       //find next block to check
       if (blockInfo.nextBlockNumber!=-1){
-        overflowBuckets++;
+        overflowBlocksPerBucket[i]++;
         int next = blockInfo.nextBlockNumber;
         CALL_OR_DIE(BF_UnpinBlock(block));
         CALL_OR_DIE(BF_GetBlock(ht_info->fileDesc,next,block));
@@ -104,7 +129,8 @@ int HashStatistics(char* fileName) {
     recordsPerBucket[i][0] = max;
     recordsPerBucket[i][1] = sum/bucketBlocks;
     recordsPerBucket[i][2]= min;
-    overflowBlocksPerBucket[i] = overflowBuckets;
+    if(overflowBlocksPerBucket[i]>0)
+      overflowBuckets++;
   }
 
   long int averageBlocksPerBucket = fileBlocks/buckets;
@@ -126,29 +152,4 @@ int HashStatistics(char* fileName) {
       printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
     }
   }
-
-}
-
-
-int main() {
-  BF_Init(LRU);
-
-  HT_CreateFile(FILE_NAME,10);
-  HT_info* info = HT_OpenFile(FILE_NAME);
-
-  Record record;
-  srand(12569874);
-  int r;
-  for (int id = 0; id < RECORDS_NUM; ++id) {
-    record = randomRecord();
-    HT_InsertEntry(info, record);
-  }
-
-  int id = rand() % RECORDS_NUM;
-  HT_GetAllEntries(info, &id);
-
-  HashStatistics(FILE_NAME);
-
-  HT_CloseFile(info);
-  BF_Close();
 }
