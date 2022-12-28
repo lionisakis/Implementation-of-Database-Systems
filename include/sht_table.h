@@ -4,7 +4,7 @@
 #include <ht_table.h>
 
 typedef struct {
-    char name[20];
+    char name[15];
     int blockID;
 } SHT_node_info;
 
