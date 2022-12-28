@@ -16,6 +16,16 @@
     }                                 \
   }
 
+#define CALL_HT(call,returnCode)      \
+  {                                   \
+    BF_ErrorCode code = call;         \
+    if (code != BF_OK) {              \
+      BF_PrintError(code);            \
+      return(returnCode);             \
+    }                                 \
+  }
+
+
 #define POS_SHT_block_info BF_BLOCK_SIZE-sizeof(SHT_block_info)-1
 #define POS_SHT_info BF_BLOCK_SIZE-sizeof(SHT_block_info)-sizeof(SHT_info)-1
 
@@ -304,32 +314,12 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
 }
 
 int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name){
-  // ~~ HT PART ~~//
-
-  int ht_file_desc = ht_info->fileDesc;
-  int ht_buckets = ht_info->numBuckets;
-
-  //find first block to get hash table
-  BF_Block* ht_block;
-  BF_Block_Init(&ht_block);
-  CALL_HT(BF_GetBlock(ht_file_desc, 0, ht_block), -1);
-
-  //find ht_block_info of first block
-  void* ht_data = BF_Block_GetData(ht_block); 
-  HT_block_info ht_blockInfo;
-  HT_Get_HT_Block_Info(ht_data,&ht_blockInfo);
-
-  //getting the hash table
-  int ht_hashtable[ht_buckets];
-  memcpy(ht_hashtable,ht_data+ht_info->posHashTable,sizeof(int)*ht_buckets);
-  
-    // ~~END OF HT PART ~~//
   
   int numberOfVisitedBlocks=0;
   int file_desc = sht_info->fileDesc;
   int buckets = sht_info->numBuckets;
 
-  //find first block to get hash table
+  //find first block to get sht hashtable
   BF_Block* block;
   BF_Block_Init(&block);
   CALL_SHT(BF_GetBlock(file_desc, 0, block), -1);
@@ -341,7 +331,7 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
 
   //getting the hash table
   int hashtable[buckets];
-  memcpy(hashtable,data+ht_info->posHashTable,sizeof(int)*buckets);
+  memcpy(hashtable,data+sht_info->posHashTable,sizeof(int)*buckets);
 
   //in which bucket should I search?
   int myBucket= SHT_hashValue(name, sht_info->numBuckets);
@@ -366,13 +356,15 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
   while(flag!=-1) {
     numberOfVisitedBlocks++;
     SHT_node_info* info = (SHT_node_info*)myData;
-    // checking the block's records
+    // checking the block's info
     for(int i=0; i<numOfInfo; i++) {
+      
       if(strcmp(name,info->name)==0) {
-        //find my id block
+        
+        //find my rec block
         BF_Block* recBlock;
         BF_Block_Init(&recBlock);
-        CALL_HT(BF_GetBlock(file_desc, info->blockID, recBlock), -1);
+        CALL_HT(BF_GetBlock(ht_info->fileDesc, info->blockID, recBlock), -1);
 
         //find data & ht_block_info of my id block
         void* recData = BF_Block_GetData(recBlock); 
@@ -380,34 +372,24 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
         HT_Get_HT_Block_Info(recData,&recBlockInfo);
 
         int recBlockRecords = recBlockInfo.numOfRecords;
-        //flag: has this bucket any other block? yes:0, no:-1
+        //flag2: has this block records with the name we're looking for? yes:perfect!, no:ERROR
         int flag2=0;
 
-        while(flag2!=-1) {
-            numberOfVisitedBlocks++;
-            Record* rec = (Record*)recData;
-            // checking the block's records
-            for(int i=0; i<recBlockRecords; i++) {
-              if(strcmp(name,rec[i].name)==0)
-                printRecord(rec[i]);
-              }
-            //find next block to check
-            if (recBlockInfo.nextBlockNumber!=-1){
-              int next = recBlockInfo.nextBlockNumber;
-              CALL_HT(BF_UnpinBlock(recBlock),-1);
-              CALL_HT(BF_GetBlock(ht_info->fileDesc,next,recBlock),-1);
-              myData = BF_Block_GetData(recBlock); 
-      
-              //find next block's hp_block_info
-              HT_Get_HT_Block_Info(recData,&recBlockInfo);
-              recBlockRecords=recBlockInfo.numOfRecords;
-            }
-            else 
-              flag2=-1;
+        Record* rec = (Record*)recData;
+        // checking the block's records
+        for(int j=0; j<recBlockRecords; j++) 
+          if(strcmp(name,rec[j].name)==0) {
+            printRecord(rec[j]);
+            flag2=1;
+          }
+
+        if(flag2==0)
+          printf("ERROR Not found record with name %s in HT Block\n",name);
+          
+        CALL_HT(BF_UnpinBlock(recBlock),-1);
+        BF_Block_Destroy(&recBlock);
+
       }
-  
-        
-        }
     }
     //find next block to check
     if (myBlockInfo.nextBlockNumber!=-1){
@@ -417,7 +399,7 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
       myData = BF_Block_GetData(myBlock); 
       
       //find next block's hp_block_info
-      HT_Get_HT_Block_Info(myData,&myBlockInfo);
+      SHT_Get_SHT_Block_Info(myData,&myBlockInfo);
       
     }
     else 
@@ -431,11 +413,10 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
 
 
   // set it so anyone can take it
-  CALL_HT(BF_UnpinBlock(ht_block),-1);
   CALL_SHT(BF_UnpinBlock(block),-1);
   CALL_SHT(BF_UnpinBlock(myBlock),-1);
+  
 
-  BF_Block_Destroy(&ht_block);
   BF_Block_Destroy(&block);
   BF_Block_Destroy(&myBlock);
 
