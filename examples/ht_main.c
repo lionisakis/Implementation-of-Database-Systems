@@ -87,8 +87,13 @@ int HashStatistics(char* fileName) {
 
     long int bucketBlocks=0;
     int blockId=hashtable[i];
-    if(blockId==-1)
+    if(blockId==-1) {
+      recordsPerBucket[i][0] = 0;
+      recordsPerBucket[i][1] = 0;
+      recordsPerBucket[i][2] = 0;
       continue;
+    }
+      
     //find current block
     BF_Block* block;
     BF_Block_Init(&block);
@@ -146,6 +151,7 @@ int HashStatistics(char* fileName) {
     printf ("Bucket %d Max Records: %ld\n",i, recordsPerBucket[i][0]);
     printf ("Bucket %d Average Records: %ld\n", i, recordsPerBucket[i][1]);
     printf ("Bucket %d Min Records: %ld\n", i, recordsPerBucket[i][2]);
+    printf(" ~~~ \n");
   }
 
   printf("Average blocks per bucket: %ld\n", averageBlocksPerBucket);

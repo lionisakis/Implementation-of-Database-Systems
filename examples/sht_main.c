@@ -159,6 +159,7 @@ int HashStatistics(char* fileName, char *indexName) {
     CALL_OR_DIE(BF_UnpinBlock(block));
     BF_Block_Destroy(&block);
   }
+  
   long int averageBlocksPerBucket = fileBlocks/buckets;
 
   printf("This file has %ld blocks\n", fileBlocks);
@@ -170,14 +171,14 @@ int HashStatistics(char* fileName, char *indexName) {
     printf(" ~~~ \n");
   }
 
-printf("Average blocks per bucket: %ld\n", averageBlocksPerBucket);
+  printf("Average blocks per bucket: %ld\n", averageBlocksPerBucket);
 
-printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
+  printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
 
-for(int i=0; i<buckets; i++) {
-  if(overflowBlocksPerBucket[i]>0) {
-    printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
-  }
+  for(int i=0; i<buckets; i++) {
+    if(overflowBlocksPerBucket[i]>0) {
+      printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
+    }
 }
   
   SHT_CloseSecondaryIndex(sht_info);
