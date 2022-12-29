@@ -357,12 +357,12 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
     // checking the block's info
     for(int i=0; i<numOfInfo; i++) {
       
-      if(strcmp(name,info->name)==0) {
+      if(strcmp(name,info[i].name)==0) {
         
         //find my rec block
         BF_Block* recBlock;
         BF_Block_Init(&recBlock);
-        CALL_HT(BF_GetBlock(ht_info->fileDesc, info->blockID, recBlock), -1);
+        CALL_HT(BF_GetBlock(ht_info->fileDesc, info[i].blockID, recBlock), -1);
 
         //find data & ht_block_info of my id block
         void* recData = BF_Block_GetData(recBlock); 
@@ -377,7 +377,7 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
         // checking the block's records
         for(int j=0; j<recBlockRecords; j++) 
           if(strcmp(name,rec[j].name)==0) {
-            printf("i %d j %d\n",i,j);
+            // printf("i %d j %d\n",i,j);
             printRecord(rec[j]);
             flag2=1;
           }
