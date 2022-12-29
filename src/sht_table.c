@@ -60,9 +60,7 @@ int SHT_CreateSecondaryIndex(char *sfileName,  int buckets, char* fileName){
   SHT_info info;
   info.fileDesc = -1;
   info.maxInfoFirstBlock = (BF_BLOCK_SIZE-sizeof(SHT_info)-sizeof(SHT_block_info)-sizeof(int)*buckets-1)/sizeof(SHT_node_info);
-  printf("%d\n",info.maxInfoFirstBlock);
   info.maxInfoPerBlock=(BF_BLOCK_SIZE-sizeof(SHT_block_info)-1)/sizeof(SHT_node_info);
-  printf("%d\n",info.maxInfoPerBlock);
   info.numBuckets= buckets;
   info.posHashTable=POS_SHT_info-sizeof(int)*buckets;
 
@@ -379,12 +377,16 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
         // checking the block's records
         for(int j=0; j<recBlockRecords; j++) 
           if(strcmp(name,rec[j].name)==0) {
+            printf("i %d j %d\n",i,j);
             printRecord(rec[j]);
             flag2=1;
           }
 
-        if(flag2==0)
+        if(flag2==0) {
           printf("ERROR Not found record with name %s in HT Block\n",name);
+          return -1;
+        }
+
           
         CALL_HT(BF_UnpinBlock(recBlock),-1);
         BF_Block_Destroy(&recBlock);

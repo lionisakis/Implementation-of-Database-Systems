@@ -144,9 +144,9 @@ int HashStatistics(char* fileName) {
   printf("This file has %ld blocks\n", fileBlocks);
 
   for(int i=0; i<buckets; i++) {
-    printf ("Bucket %d Max Records: %f\n",i, recordsPerBucket[i][0]);
+    printf ("Bucket %d Max Records: %d\n",i, (int)recordsPerBucket[i][0]);
     printf ("Bucket %d Average Records: %f\n", i, recordsPerBucket[i][1]);
-    printf ("Bucket %d Min Records: %f\n", i, recordsPerBucket[i][2]);
+    printf ("Bucket %d Min Records: %d\n", i, (int)recordsPerBucket[i][2]);
     printf(" ~~~ \n");
   }
 
