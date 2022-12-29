@@ -76,14 +76,16 @@ int HashStatistics(char* fileName) {
   memcpy(hashtable,fistData+ht_info->posHashTable,sizeof(int)*buckets);
 
   
-  int max=0;
-  int min=0;
-  int sum=0;
+
   
 
   for(int i=0; i<buckets; i++) {
 
-    
+    int max=0;
+    int min=0;
+    int sum=0;
+
+    long int bucketBlocks=0;
     int blockId=hashtable[i];
     if(blockId==-1)
       continue;
@@ -100,7 +102,6 @@ int HashStatistics(char* fileName) {
     min=blockRecords;
     int flag=0;
     
-    long int bucketBlocks=0;
     while(flag!=-1) {
       fileBlocks++;
       bucketBlocks++;

@@ -21,6 +21,8 @@ typedef struct {
     int nextBlockNumber;
 } SHT_block_info;
 
+void SHT_Get_SHT_Block_Info(void* data,SHT_block_info* blockInfo);
+
 /*Η συνάρτηση SHT_CreateSecondaryIndex χρησιμοποιείται για τη δημιουργία
 και κατάλληλη αρχικοποίηση ενός αρχείου δευτερεύοντος κατακερματισμού με
 όνομα sfileName για το αρχείο πρωτεύοντος κατακερματισμού fileName. Σε
