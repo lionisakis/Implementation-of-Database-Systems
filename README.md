@@ -1,7 +1,7 @@
 # IMPLEMENTATION OF DATABASE SYSTEM
 
 authors: 
-- Despotidou Kalliopi Christina   (sdi2000045)
+- Despotidou Kalliopi Christina(Κallistina) (sdi2000045)
 - Lionis Emmanouil Georgios(Akis) (sdi1900103)
 
 # Summary
