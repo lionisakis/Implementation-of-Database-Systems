@@ -6,7 +6,7 @@
 #include "ht_table.h"
 #include "sht_table.h"
 
-#define RECORDS_NUM 30 // you can change it if you want
+#define RECORDS_NUM 200 // you can change it if you want
 #define FILE_NAME "data.db"
 #define INDEX_NAME "index.db"
 
@@ -60,7 +60,7 @@ int main() {
 
 int HashStatistics(char* fileName, char *indexName) {
 
-  printf("FILE STATISTICS\n\n");
+  printf("FILE STATISTICS-SHT\n\n");
   HT_info* ht_info = HT_OpenFile(fileName);
   SHT_info* sht_info = SHT_OpenSecondaryIndex(indexName);
   int file_desc = sht_info->fileDesc;
@@ -159,7 +159,7 @@ int HashStatistics(char* fileName, char *indexName) {
     CALL_OR_DIE(BF_UnpinBlock(block));
     BF_Block_Destroy(&block);
   }
-  long int averageBlocksPerBucket = fileBlocks/buckets;
+  double averageBlocksPerBucket = (double)fileBlocks/(double)buckets;
 
   printf("This file has %ld blocks\n", fileBlocks);
 
@@ -170,18 +170,18 @@ int HashStatistics(char* fileName, char *indexName) {
     printf(" ~~~ \n");
   }
 
-printf("Average blocks per bucket: %ld\n", averageBlocksPerBucket);
+  printf("Average blocks per bucket: %f\n", averageBlocksPerBucket);
 
-printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
+  printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
 
-for(int i=0; i<buckets; i++) {
-  if(overflowBlocksPerBucket[i]>0) {
-    printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
+  for(int i=0; i<buckets; i++) {
+    if(overflowBlocksPerBucket[i]>0) {
+      printf("Bucket %d Overflow Blocks: %ld\n",i, overflowBlocksPerBucket[i]);
+    }
   }
-}
-  
-  SHT_CloseSecondaryIndex(sht_info);
-  HT_CloseFile(ht_info);
-  return 0;
+    
+    SHT_CloseSecondaryIndex(sht_info);
+    HT_CloseFile(ht_info);
+    return 0;
 
 }
