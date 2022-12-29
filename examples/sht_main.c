@@ -67,7 +67,7 @@ int HashStatistics(char* fileName, char *indexName) {
   long int buckets = sht_info->numBuckets;
 
   //Initialization
-  long int infoPerBucket[buckets][3];
+  double infoPerBucket[buckets][3];
   long int overflowBlocksPerBucket[buckets];
   long int overflowBuckets=0;
   long int fileBlocks=0;
@@ -151,7 +151,7 @@ int HashStatistics(char* fileName, char *indexName) {
     }
 
     infoPerBucket[i][0] = max;
-    infoPerBucket[i][1] = sum/bucketBlocks;
+    infoPerBucket[i][1] = (double)sum/(double)bucketBlocks;
     infoPerBucket[i][2]= min;
     if(overflowBlocksPerBucket[i]>0)
       overflowBuckets++;
@@ -164,9 +164,9 @@ int HashStatistics(char* fileName, char *indexName) {
   printf("This file has %ld blocks\n", fileBlocks);
 
   for(int i=0; i<buckets; i++) {
-    printf ("Bucket %d Max INFO: %ld\n",i, infoPerBucket[i][0]);
-    printf ("Bucket %d Average INFO: %ld\n", i, infoPerBucket[i][1]);
-    printf ("Bucket %d Min INFO: %ld\n", i, infoPerBucket[i][2]);
+    printf ("Bucket %d Max INFO: %f\n",i, infoPerBucket[i][0]);
+    printf ("Bucket %d Average INFO: %f\n", i, infoPerBucket[i][1]);
+    printf ("Bucket %d Min INFO: %f\n", i, infoPerBucket[i][2]);
     printf(" ~~~ \n");
   }
 

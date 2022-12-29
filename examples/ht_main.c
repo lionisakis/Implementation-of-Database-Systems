@@ -50,7 +50,7 @@ int HashStatistics(char* fileName) {
   long int buckets = ht_info->numBuckets;
 
   //Initialization
-  long int recordsPerBucket[buckets][3];
+  double recordsPerBucket[buckets][3];
   long int overflowBlocksPerBucket[buckets];
   long int overflowBuckets=0;
   long int fileBlocks=0;
@@ -74,10 +74,6 @@ int HashStatistics(char* fileName) {
   //getting the hash table
   int hashtable[buckets];
   memcpy(hashtable,fistData+ht_info->posHashTable,sizeof(int)*buckets);
-
-  
-
-  
 
   for(int i=0; i<buckets; i++) {
 
@@ -134,7 +130,7 @@ int HashStatistics(char* fileName) {
     }
 
     recordsPerBucket[i][0] = max;
-    recordsPerBucket[i][1] = sum/bucketBlocks;
+    recordsPerBucket[i][1] = (double)sum/(double)bucketBlocks;
     recordsPerBucket[i][2]= min;
     if(overflowBlocksPerBucket[i]>0)
       overflowBuckets++;
@@ -143,18 +139,18 @@ int HashStatistics(char* fileName) {
     BF_Block_Destroy(&block);
   }
 
-  long int averageBlocksPerBucket = fileBlocks/buckets;
+  double averageBlocksPerBucket = (double)fileBlocks/(double)buckets;
 
   printf("This file has %ld blocks\n", fileBlocks);
 
   for(int i=0; i<buckets; i++) {
-    printf ("Bucket %d Max Records: %ld\n",i, recordsPerBucket[i][0]);
-    printf ("Bucket %d Average Records: %ld\n", i, recordsPerBucket[i][1]);
-    printf ("Bucket %d Min Records: %ld\n", i, recordsPerBucket[i][2]);
+    printf ("Bucket %d Max Records: %f\n",i, recordsPerBucket[i][0]);
+    printf ("Bucket %d Average Records: %f\n", i, recordsPerBucket[i][1]);
+    printf ("Bucket %d Min Records: %f\n", i, recordsPerBucket[i][2]);
     printf(" ~~~ \n");
   }
 
-  printf("Average blocks per bucket: %ld\n", averageBlocksPerBucket);
+  printf("Average blocks per bucket: %f\n", averageBlocksPerBucket);
 
   printf("Buckets with overflow blocks: %ld\n", overflowBuckets);
 
