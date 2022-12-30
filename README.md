@@ -8,7 +8,7 @@ authors:
 This project takes some Records and then saves them in data.db file stores with a heap or a hash table. Also, you can make a secondary hash table that saves the data in index.db. This way, we allocate blocks and data, and then someone can take the data from data.db or index.db and print all the entries. Also we have made some Statistics for some variations.
 
 # Report
-When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hastable blocks. In this way, some buckets can avoid overflow, so new blocks are created.
+When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hastable blocks. In this way, some buckets can't avoid overflow, so new blocks are created.
 
  --- Run ht_main --- 
 ./build/ht_main  
