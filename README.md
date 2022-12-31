@@ -10,12 +10,8 @@ This project takes some Records and then saves them in data.db file stores with 
 # Report
 When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hashtable blocks. In this way, some buckets cannot avoid overflow, so new blocks are created.
 
-### Run ht_main 
+### Statistics of ht_main 
 ```
-./build/ht_main  
-(165,Sofia,Michas,Los Angeles)
-FILE STATISTICS
-
 This file has 40 blocks
 Bucket 0 Max Records: 5
 Bucket 0 Average Records: 5.000000
@@ -73,43 +69,8 @@ Bucket 9 Overflow Blocks: 3
 
 When we run the sht_main (the secondary hashtable implementation), we observe that the info with records of integer ids from 1 to n (n= MAX_RECORD) are NOT inserted linearly. The reason is that the hashValue function divides the info data depending on the records' name, they are NOT evenly distributed in the secondary hashtable blocks and some buckets remain empty. As a result, we can find easier the block we search for and we use less memory than we need in the sht. On the other hand, many info data are inserted in the same bucket and as a result, many new blocks are created in the very same bucket while other buckets are empty. This way, the worst-case scenario complexity O(n) may occur compared to the primary hashtable. Also, two or more records may have the same name domain, so we can separate them. As a result, in the getAllEntries function, we may print two or more times the same record: when we search in the secondary hashtable, the block's info with the given name we find (name, blockId) info couple and nothing else about this record. Then we visit the block with id=blockId in the primary hashtable and look for the record in the block's record table for the record with the given name and we print as many records have this name (maybe 2 or more). Then we go back to the secondary hashtable and look if any other info data from the info's table has the given name. If yes, we repeat the same actions in the primary hashtable. As a result, we do not know which records were already printed because we need their id, and we eventually print them again.
 
-### Run sht_main 
+### Statistics of sht_main 
 ```
-./build/sht_main  
-Insert Entries
-RUN PrintAllEntries for name Vagelis
-(20,Vagelis,Rezkalla,Los Angeles)
-(40,Vagelis,Michas,Amsterdam)
-(38,Vagelis,Mailis,Tokyo)
-(20,Vagelis,Rezkalla,Los Angeles)
-(40,Vagelis,Michas,Amsterdam)
-(46,Vagelis,Rezkalla,Athens)
-(59,Vagelis,Halatsis,London)
-(89,Vagelis,Berreta,Hong Kong)
-(61,Vagelis,Mailis,San Francisco)
-(71,Vagelis,Koronis,Athens)
-(61,Vagelis,Mailis,San Francisco)
-(71,Vagelis,Koronis,Athens)
-(78,Vagelis,Berreta,Amsterdam)
-(59,Vagelis,Halatsis,London)
-(89,Vagelis,Berreta,Hong Kong)
-(94,Vagelis,Michas,San Francisco)
-(109,Vagelis,Koronis,Munich)
-(111,Vagelis,Svingos,Amsterdam)
-(113,Vagelis,Gaitanis,Hong Kong)
-(122,Vagelis,Michas,Athens)
-(132,Vagelis,Koronis,San Francisco)
-(122,Vagelis,Michas,Athens)
-(132,Vagelis,Koronis,San Francisco)
-(146,Vagelis,Rezkalla,Hong Kong)
-(152,Vagelis,Mailis,London)
-(154,Vagelis,Gaitanis,Amsterdam)
-(155,Vagelis,Michas,Miami)
-(177,Vagelis,Halatsis,London)
-(179,Vagelis,Svingos,Hong Kong)
-(186,Vagelis,Koronis,Amsterdam)
-FILE STATISTICS-SHT
-
 This file has 11 blocks
 Bucket 0 Max INFO: 12
 Bucket 0 Average INFO: 12.000000
