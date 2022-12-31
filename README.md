@@ -10,7 +10,8 @@ This project takes some Records and then saves them in data.db file stores with 
 # Report
 When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hastable blocks. In this way, some buckets can't avoid overflow, so new blocks are created.
 
- --- Run ht_main --- 
+### Run ht_main 
+```
 ./build/ht_main  
 (165,Sofia,Michas,Los Angeles)
 FILE STATISTICS
@@ -68,12 +69,12 @@ Bucket 6 Overflow Blocks: 3
 Bucket 7 Overflow Blocks: 3
 Bucket 8 Overflow Blocks: 3
 Bucket 9 Overflow Blocks: 3
-
----------------------------------------------------------------------------------
+```
 
 When we run the sht_main (the secondary hashtable implementation), we observe that while info with records of integer ids from 1 to n (n= MAX_RECORD) are NOT inserted linearly because the hashValue function divides the info data depending of the records' name, they are NOT evenly distributed in the secondary hastable blocks and some buckets remain empty. As a result, we can find easier the block we search for and we use less memory than we need in the sht. In the other hand, many info data are inserted in the same bucket and as result many new blocks are created in the very same bucket while other buckets are empty. In this way the worst case scenario complexity O(n) may occur in compare with the primary hashtable. Also, two or more records may have the same name domain, so we can seperate them and as a result in the getAllEntries function we may print two or more times the same record: when we search in the secondary hastable the block's info with the given name we find (name, blockId) info couple and nothing else about this record. Then we visit the block with id=blockId in the primary hashtable and look for the record in the  block's record table for the record with the given name and we print as many records have this name (maybe 2 or more). Then we go back in the secondary hashtable and look if any other info data from the info's table has the given name. If yes, we repeat the same actions in the primary hashtable. As a result, we don't know which records were already printed because we don't have their id, and we eventually print them again.
 
- --- Run sht_main --- 
+### Run sht_main 
+```
 ./build/sht_main  
 Insert Entries
 RUN PrintAllEntries for name Vagelis
@@ -155,6 +156,7 @@ Buckets with overflow blocks: 3
 Bucket 1 Overflow Blocks: 2
 Bucket 5 Overflow Blocks: 1
 Bucket 8 Overflow Blocks: 1
+```
 
 # How to run the code
 There are numerous ways to run the code. Either make the build and run it or write the command to make it and run it.
