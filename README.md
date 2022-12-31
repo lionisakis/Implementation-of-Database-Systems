@@ -1,6 +1,6 @@
 # IMPLEMENTATION OF DATABASE SYSTEM
 
-authors: 
+Authors: 
 - Despotidou Kalliopi Christina(Κallistina) (sdi2000045)
 - Lionis Emmanouil Georgios(Akis) (sdi1900103)
 
