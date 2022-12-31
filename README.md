@@ -8,7 +8,7 @@ authors:
 This project takes some Records and then saves them in data.db file stores with a heap or a hash table. Also, you can make a secondary hash table that saves the data in index.db. This way, we allocate blocks and data, and then someone can take the data from data.db or index.db and print all the entries. Also we have made some Statistics for some variations.
 
 # Report
-When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hastable blocks. In this way, some buckets can't avoid overflow, so new blocks are created.
+When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hashtable blocks. In this way, some buckets cannot avoid overflow, so new blocks are created.
 
 ### Run ht_main 
 ```
@@ -71,7 +71,7 @@ Bucket 8 Overflow Blocks: 3
 Bucket 9 Overflow Blocks: 3
 ```
 
-When we run the sht_main (the secondary hashtable implementation), we observe that while info with records of integer ids from 1 to n (n= MAX_RECORD) are NOT inserted linearly because the hashValue function divides the info data depending of the records' name, they are NOT evenly distributed in the secondary hastable blocks and some buckets remain empty. As a result, we can find easier the block we search for and we use less memory than we need in the sht. In the other hand, many info data are inserted in the same bucket and as result many new blocks are created in the very same bucket while other buckets are empty. In this way the worst case scenario complexity O(n) may occur in compare with the primary hashtable. Also, two or more records may have the same name domain, so we can seperate them and as a result in the getAllEntries function we may print two or more times the same record: when we search in the secondary hastable the block's info with the given name we find (name, blockId) info couple and nothing else about this record. Then we visit the block with id=blockId in the primary hashtable and look for the record in the  block's record table for the record with the given name and we print as many records have this name (maybe 2 or more). Then we go back in the secondary hashtable and look if any other info data from the info's table has the given name. If yes, we repeat the same actions in the primary hashtable. As a result, we don't know which records were already printed because we don't have their id, and we eventually print them again.
+When we run the sht_main (the secondary hashtable implementation), we observe that the info with records of integer ids from 1 to n (n= MAX_RECORD) are NOT inserted linearly. The reason is that the hashValue function divides the info data depending on the records' name, they are NOT evenly distributed in the secondary hashtable blocks and some buckets remain empty. As a result, we can find easier the block we search for and we use less memory than we need in the sht. On the other hand, many info data are inserted in the same bucket and as a result, many new blocks are created in the very same bucket while other buckets are empty. This way, the worst-case scenario complexity O(n) may occur compared to the primary hashtable. Also, two or more records may have the same name domain, so we can separate them. As a result, in the getAllEntries function, we may print two or more times the same record: when we search in the secondary hashtable, the block's info with the given name we find (name, blockId) info couple and nothing else about this record. Then we visit the block with id=blockId in the primary hashtable and look for the record in the block's record table for the record with the given name and we print as many records have this name (maybe 2 or more). Then we go back to the secondary hashtable and look if any other info data from the info's table has the given name. If yes, we repeat the same actions in the primary hashtable. As a result, we do not know which records were already printed because we need their id, and we eventually print them again.
 
 ### Run sht_main 
 ```
@@ -170,17 +170,17 @@ If you want to build and run the program immediately,n you have to write `make <
 For example: ***make sht-run***
 
 ## Make Clean
-The `make clean` will delete all the .o .d files and also the data.db and index.db files
+The `make clean` will delete all the .o .d files and the data.db and index.db files
 
 # Files - Description
 There are 7 different code files: hp_file, hp_main, ht_table, ht_main, sht_table, sht_main, record, and bf_main.
 Also, we have the 5 header files for the functions: bf, hp_file, ht_table, sht_table, and record.
 
 ### hp_main 
-    The main creates the file, opens it, inserts some random records, prints all the records with a specific id, and closes the file.
+    The main creates the file, opens it, inserts some random records, prints them with a specific id, and closes the file.
 
 ### hp_file
-    It has the functions of heap implementation. The heap has the hp_info, which stores the id file description, max records in the first block and the max records per block. It also has the hp_block_info which stores the count record and the following block id. 
+    It has the functions of heap implementation. The heap has the hp_info, which stores the id file description, max records in the first block and the max records per block. It also has the hp_block_info, which stores the count record and the following block id. 
 
     In the create, we create the first hp_block_info and the hp_info because we create the first block.
 
@@ -205,20 +205,20 @@ Also, we have the 5 header files for the functions: bf, hp_file, ht_table, sht_t
 
     The hash statistics function prints 
         1. the count of blocks for the data.db file, 
-        2. the minimum, the average and the maximum count of records for every bucket of this file,
+        2. the minimum, average and maximum count of records for every bucket of this file,
         3. the average number of blocks for every bucket
-        4. the amount of buckets with overflowing blocks and the amount of overflowing blocks for every bucket
+        4. the number of buckets with overflowing blocks and the amount of overflowing blocks for every bucket
 
 ### ht_table
     It has the functions of primary hash table implementation. 
     
-    The hash table has the ht_info, which stores the id file description, the count of buckets of this hash table, the posistion of the hash table, the max records in the first block of the first bucket and the max records per block. 
+    The hash table has the ht_info, which stores the id file description, the count of buckets of this hash table, the position of the hash table, the max records in the first block of the first bucket and the max records per block. 
     
-    It also has the ht_block_info which stores the count record and the following block id. 
+    It also has the ht_block_info, which stores the count record and the following block id. 
 
     In the create function, we create the first ht_block_info and the hp_info because we create the first block.
 
-    In the open funtion, we take the ht_info
+    In the open function, we take the ht_info
 
     In the insert we:
         1. take the record
@@ -229,7 +229,7 @@ Also, we have the 5 header files for the functions: bf, hp_file, ht_table, sht_t
             
     ***Important: The insert starts to insert from the first block of the first bucket that contains the ht_info, the ht_block_info, to save up memory space***
 
-    In the get all entries function, we hash the value with the hash function we created in order to find the right bucket. Then, we find this bucket's blocks and we check if they contain the record with the given value. If yes, we print it.
+    In the get all entries function, we hash the value with the function we created to find the right bucket. Then, we find this bucket's blocks and check if they contain the record with the given value. If yes, we will print it.
 
     In the close function, we close the file and free the ht_info. 
 
@@ -240,16 +240,16 @@ Also, we have the 5 header files for the functions: bf, hp_file, ht_table, sht_t
         1. the count of blocks for the index.db file, 
         2. the minimum, the average and the maximum count of info (name,blockId) for every bucket of the secondary hash table of this file,
         3. the average number of blocks for every bucket
-        4. the amount of buckets with overflowing blocks and the amount of overflowing blocks for every bucket
+        4. the number of buckets with overflowing blocks and the amount of overflowing blocks for every bucket
 
 ### sht_table
     It has the functions of secondary hash table implementation.
 
-    We created a new struct: in the SHT_node_info we store the name of one record and the id of the ht hashtable block in which the whole record is stored.
+    We created a new struct: in the SHT_node_info, we store the name of one record and the id of the ht hashtable block in which the whole record is stored.
 
-    The sht has the sht_info, which stores the id file description, the count of buckets of this hash table, the posistion of the hash table, the max records in the first block of the first bucket and the max records per block. 
+    The sht has the sht_info, which stores the id file description, the count of buckets of this hash table, the position of the hash table, the max records in the first block of the first bucket and the max records per block. 
     
-    It also has the sht_block_info which stores the count record and the following block id. 
+    It also has the sht_block_info, which stores the count record and the following block id. 
 
     In the create, we create the first sht_block_info and the sht_info because we create the first block.
 
@@ -264,7 +264,7 @@ Also, we have the 5 header files for the functions: bf, hp_file, ht_table, sht_t
             
     ***Important: The insert starts to insert from the first block that contains the sht_info, the sht_block_info, to save up memory space***
 
-   In the get all entries function, we hash the name we were given with the hash function we created in order to find the right bucket. Then, we find this bucket's blocks and we check if they contain a sht_node_info with the given name. If yes, we reach the ht hastable block with the id which is crossed with this name in the sht_node_info. Then, we search the records in the id block and if we find a record with the given name, we print it, else we print that an error occured and we return -1.
+   In the get all entries function, we hash the name given with the hash function we created to find the right bucket. Then, we find this bucket's blocks and check if they contain a sht_node_info with the given name. If yes, we reach the ht hashtable block with the id which is crossed with this name in the sht_node_info. Then, we search the records in the id block and if we find a record with the given name, we print it, or we print that an error occurred and return -1.
 
     In the close, we close the file and free the sht_info.
 
