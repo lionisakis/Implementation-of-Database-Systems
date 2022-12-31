@@ -151,8 +151,8 @@ In the insert we:
  1. take the record
  2. find the last block
  3. check if there is room
-   - if there is room, then insert it there
-   - if there is not, then create a new block, insert in the new block and link the previous block with the new block
+    1. if there is room, then insert it there
+    2. if there is not, then create a new block, insert in the new block and link the previous block with the new block
             
 ***Important: The insert starts to insert from the first block that contains the hp_info, the hp_block_info, to save up memory space***
 
@@ -185,8 +185,8 @@ In the insert we:
  1. take the record
  2. hash the record id in order to find the last block of the appropriate bucket to put it
  3. check if there is room
-   - if there is room, then insert it there
-   - if there is not, then create a new block, insert in the new block and link the previous block with the new block
+    1. if there is room, then insert it there
+    2. if there is not, then create a new block, insert in the new block and link the previous block with the new block
             
 ***Important: The insert starts to insert from the first block of the first bucket that contains the ht_info, the ht_block_info, to save up memory space***
 
@@ -220,8 +220,8 @@ In the insert we:
  1. take the record
  2. find the last block
  3. check if there is room
-  - if there is room, then insert it there
-  - if there is not, then create a new block, insert in the new block and link the previous block with the new block
+    1. if there is room, then insert it there
+    2. if there is not, then create a new block, insert in the new block and link the previous block with the new block
             
 ***Important: The insert starts to insert from the first block that contains the sht_info, the sht_block_info, to save up memory space***
 
