@@ -8,7 +8,7 @@ Authors:
 This project takes some Records and then saves them in data.db file stores with a heap or a hash table. Also, you can make a secondary hash table that saves the data in index.db. This way, we allocate blocks and data, and then someone can take the data from data.db or index.db and print all the entries. Also we have made some Statistics for some variations.
 
 # Report
-When we run the ht_main (the primary hashtable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the hashtable blocks. In this way, some buckets cannot avoid overflow, so new blocks are created.
+When we run the ht_main (the primary HashTable implementation), we observe that while records with integer ids from 1 to n (n= RECORDS_NUM) are inserted linearly, they are evenly distributed in the HashTable blocks. In this way, some buckets cannot avoid overflow, so new blocks are created.
 
 ### Statistics of ht_main 
 ```
@@ -67,7 +67,7 @@ Bucket 8 Overflow Blocks: 3
 Bucket 9 Overflow Blocks: 3
 ```
 
-When we run the sht_main (the secondary hashtable implementation), we observe that the info with records of integer ids from 1 to n (n= MAX_RECORD) are NOT inserted linearly. The reason is that the hashValue function divides the info data depending on the records' name, they are NOT evenly distributed in the secondary hashtable blocks and some buckets remain empty. As a result, we can find easier the block we search for and we use less memory than we need in the sht. On the other hand, many info data are inserted in the same bucket and as a result, many new blocks are created in the very same bucket while other buckets are empty. This way, the worst-case scenario complexity O(n) may occur compared to the primary hashtable. Also, two or more records may have the same name domain, so we can't separate them. As a result, in the getAllEntries function, we may print two or more times the same record: when we search in the secondary hashtable, the block's info with the given name we find (name, blockId) info couple and nothing else about this record. Then we visit the block with id=blockId in the primary hashtable and look for the record in the block's record table for the record with the given name and we print as many records have this name (maybe 2 or more). Then we go back to the secondary hashtable and look if any other info data from the info's table has the given name. If yes, we repeat the same actions in the primary hashtable. As a result, we do not know which records were already printed because we need their id, and we eventually print them again.
+When we run the sht_main (the secondary HashTable implementation), we observe that the info with records of integer ids from 1 to n (n= MAX_RECORD) are NOT inserted linearly. The reason is that the hashValue function divides the info data depending on the records' name, they are NOT evenly distributed in the secondary HashTable blocks and some buckets remain empty. As a result, we can find easier the block we search for and we use less memory than we need in the sht. On the other hand, many info data are inserted in the same bucket and as a result, many new blocks are created in the very same bucket while other buckets are empty. This way, the worst-case scenario complexity O(n) may occur compared to the primary HashTable. Also, two or more records may have the same name domain, so we can't separate them. As a result, in the getAllEntries function, we may print two or more times the same record: when we search in the secondary HashTable, the block's info with the given name we find (name, blockId) info couple and nothing else about this record. Then we visit the block with id=blockId in the primary HashTable and look for the record in the block's record table for the record with the given name and we print as many records have this name (maybe 2 or more). Then we go back to the secondary HashTable and look if any other info data from the info's table has the given name. If yes, we repeat the same actions in the primary HashTable. As a result, we do not know which records were already printed because we need their id, and we eventually print them again.
 
 ### Statistics of sht_main 
 ```
@@ -206,7 +206,7 @@ The hash statistics function prints
 ### sht_table
 It has the functions of secondary hash table implementation.
 
-We created a new struct: in the SHT_node_info, we store the name of one record and the id of the ht hashtable block in which the whole record is stored.
+We created a new struct: in the SHT_node_info, we store the name of one record and the id of the ht HashTable block in which the whole record is stored.
 
 The sht has the sht_info, which stores the id file description, the count of buckets of this hash table, the position of the hash table, the max records in the first block of the first bucket and the max records per block. 
     
@@ -225,7 +225,7 @@ In the insert we:
             
 ***Important: The insert starts to insert from the first block that contains the sht_info, the sht_block_info, to save up memory space***
 
-In the get all entries function, we hash the name given with the hash function we created to find the right bucket. Then, we find this bucket's blocks and check if they contain a sht_node_info with the given name. If yes, we reach the ht hashtable block with the id which is crossed with this name in the sht_node_info. Then, we search the records in the id block and if we find a record with the given name, we print it, or we print that an error occurred and return -1.
+In the get all entries function, we hash the name given with the hash function we created to find the right bucket. Then, we find this bucket's blocks and check if they contain a sht_node_info with the given name. If yes, we reach the ht HashTable block with the id which is crossed with this name in the sht_node_info. Then, we search the records in the id block and if we find a record with the given name, we print it, or we print that an error occurred and return -1.
 
 In the close, we close the file and free the sht_info.
 
