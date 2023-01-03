@@ -335,7 +335,8 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
   int myBucket= SHT_hashValue(name, sht_info->numBuckets);
 
   int blockId=hashtable[myBucket];
-  if(blockId==-1)
+  //i didn't find any block, so i return 0
+  if(blockId==-1)  
     return 0;
   //find my id block
   BF_Block* myBlock;
@@ -404,12 +405,6 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
     else 
       flag=-1;
   }
-
-
-
-
-
-
 
   // set it so anyone can take it
   CALL_SHT(BF_UnpinBlock(block),-1);
