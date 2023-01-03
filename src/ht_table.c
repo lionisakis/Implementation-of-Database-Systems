@@ -228,7 +228,7 @@ int HT_InsertEntry(HT_info* ht_info, Record record){
     int insert=1;
     if(currentBlock==0 && blockInfo.numOfRecords<ht_info->maxRecordFirstBlock)
       insert=0;
-    else if(currentBlock>0 && blockInfo.numOfRecords<ht_info->maxRecordPerBlock-1)
+    else if(currentBlock>0 && blockInfo.numOfRecords<ht_info->maxRecordPerBlock)
       insert=0;
 
     // it is full so insert new block

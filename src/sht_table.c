@@ -249,7 +249,7 @@ int SHT_SecondaryInsertEntry(SHT_info* sht_info, Record record, int block_id){
     int insert=1;
     if(currentBlock==0 && blockInfo.numOfInfo<sht_info->maxInfoFirstBlock)
       insert=0;
-    else if(currentBlock>0 && blockInfo.numOfInfo<sht_info->maxInfoPerBlock-1)
+    else if(currentBlock>0 && blockInfo.numOfInfo<sht_info->maxInfoPerBlock)
       insert=0;
 
     // it is full so insert new block
@@ -347,18 +347,17 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
   SHT_block_info myBlockInfo;
   SHT_Get_SHT_Block_Info(myData,&myBlockInfo);
 
-  int numOfInfo = myBlockInfo.numOfInfo;
   //flag: has this bucket any other block? yes:0, no:-1
   int flag=0;
 
   while(flag!=-1) {
     numberOfVisitedBlocks++;
     SHT_node_info* info = (SHT_node_info*)myData;
+    int numOfInfo = myBlockInfo.numOfInfo;
     // checking the block's info
     for(int i=0; i<numOfInfo; i++) {
       
       if(strcmp(name,info[i].name)==0) {
-        
         //find my rec block
         BF_Block* recBlock;
         BF_Block_Init(&recBlock);
@@ -377,7 +376,6 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
         // checking the block's records
         for(int j=0; j<recBlockRecords; j++) 
           if(strcmp(name,rec[j].name)==0) {
-            // printf("i %d j %d\n",i,j);
             printRecord(rec[j]);
             flag2=1;
           }
@@ -402,7 +400,6 @@ int SHT_SecondaryGetAllEntries(HT_info* ht_info, SHT_info* sht_info, char* name)
       
       //find next block's hp_block_info
       SHT_Get_SHT_Block_Info(myData,&myBlockInfo);
-      
     }
     else 
       flag=-1;
